@@ -2,11 +2,7 @@
 
 import React, { useState, useEffect, type JSX, useRef } from 'react';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import ReactMarkdown from 'react-markdown';
-
-import { CheckCircle2, CircleArrowDown, CircleArrowRight, CircleArrowUp, Search, UploadCloud, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import {
   Select,
   SelectTrigger,
@@ -14,12 +10,7 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import { ScrollArea, Scrollbar } from '@radix-ui/react-scroll-area';
-import ExtractedSections from './converterextractedSection';
-import { useNavigate } from 'react-router-dom';
-// const navigate = useNavigate(); // ✅ Correct
 
-const GITHUB_KEY = "recentGithubUrls";
 type Props = {
   goToStep: (step: number) => void;
   responseText: string;
@@ -99,12 +90,23 @@ const [file, setFile] = useState<File | null>(null);
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      setFile(e.dataTransfer.files[0]);
-    }
-  };
+ const handleDrop = (e: React.DragEvent) => {
+  e.preventDefault();
+  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    const droppedFile = e.dataTransfer.files[0];
+    setFile(droppedFile);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      setFileContent(content);
+      setResponseText(content);
+      console.log("File content:", content);
+      localStorage.setItem('responseText', content);
+    };
+    reader.readAsText(droppedFile);
+  }
+};
+
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -120,12 +122,18 @@ const [file, setFile] = useState<File | null>(null);
   const formatSize = (bytes: number) => {
     return `${(bytes / 1024).toFixed(1)}Kb`;
   };
-type Props = {
-  goToStep: (step: number) => void;
-  responseText: string;
-  setResponseText: (text: string) => void;
-  setPipelineData: (data: string) => void; // ⬅️ Add this
-};
+  const handleFileUpload = async () => {
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      setFileContent(content);
+      setResponseText(content);
+      localStorage.setItem('responseText', content);
+    };
+    reader.readAsText(file);
+  };
 
 const [extractedData, setExtractedData] = useState('');
 
@@ -305,7 +313,7 @@ const handleSubmit = () => {
         
 {isSidebarOpen &&
          <p className={`text-sm ml-2 p-1 cursor-default 
-                ${responseText.length>0 ? 'text-white' : 'text-gray-500'}`}>File Preview</p>}
+                ${fileContent.length>0 ? 'text-white' : 'text-gray-500'}`}>File Preview</p>}
           {showTextarea && (
             
           <div>
@@ -381,192 +389,3 @@ const handleSubmit = () => {
   );
 }
 
-// 'use client';
-
-// import React, { useState } from 'react';
-// import { Button } from "@/components/ui/button";
-// import { Textarea } from "@/components/ui/textarea";
-// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-// import { Loader2 } from "lucide-react";
-
-// export default function PipelineUpload() {
-//   const [sourceTechnology, setSourceTechnology] = useState('');
-//   const [targetTechnology, setTargetTechnology] = useState('');
-//   const [os, setOS] = useState('');
-//   const [fileContent, setFileContent] = useState('');
-//   const [convertedPipeline, setConvertedPipeline] = useState('');
-//   const [isLoading, setIsLoading] = useState(false);
-
-// const handleFile = (file: File) => {
-//   const reader = new FileReader();
-//   reader.onload = async (event) => {
-//     const text = event.target?.result as string;
-//     setFileContent(text);
-
-//     // Only trigger conversion if all required inputs are filled
-//     if (sourceTechnology && targetTechnology && os) {
-//       setIsLoading(true);
-//       try {
-//         const response = await fetch("http://127.0.0.1:8000/convert-pipeline", {
-//           method: "POST",
-//           headers: {
-//             "Content-Type": "application/json",
-//           },
-//           body: JSON.stringify({
-//             source_tech: sourceTechnology,
-//             target_tech: targetTechnology,
-//             pipeline_code: text,
-//             input_os: os,
-//           }),
-//         });
-
-//         const data = await response.json();
-//         setConvertedPipeline(data.converted_pipeline);
-//       } catch (error) {
-//         console.error("Conversion error:", error);
-//         alert("Something went wrong during conversion.");
-//       } finally {
-//         setIsLoading(false);
-//       }
-//     } else {
-//       alert("Please select source tech, target tech, and OS before uploading.");
-//     }
-//   };
-//   reader.readAsText(file);
-// };
-
-
-//   const handleConvert = async () => {
-//     if (!sourceTechnology || !targetTechnology || !os || !fileContent) {
-//       alert("Please fill all fields and upload a pipeline file.");
-//       return;
-//     }
-
-//     setIsLoading(true);
-//     try {
-//       const response = await fetch("http://127.0.0.1:8000/convert-pipeline", {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//         body: JSON.stringify({
-//           source_tech: sourceTechnology,
-//           target_tech: targetTechnology,
-//           pipeline_code: fileContent,
-//           input_os: os,
-//         }),
-//       });
-
-//       const data = await response.json();
-//       setConvertedPipeline(data.converted_pipeline);
-//     } catch (error) {
-//       console.error("Conversion error:", error);
-//       alert("Something went wrong during conversion.");
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   return (
-//     <div className="w-full p-6">
-//       <h2 className="text-2xl font-bold mb-4">Pipeline Converter</h2>
-
-//       <div className="mb-4">
-//         <label className="block font-semibold mb-1">Source Technology</label>
-//         <Select onValueChange={setSourceTechnology}>
-//           <SelectTrigger className="w-full border rounded p-2">
-//             <SelectValue placeholder="Select the Source Platform" />
-//           </SelectTrigger>
-//           <SelectContent>
-//             <SelectItem value="azure">Azure DevOps YAML</SelectItem>
-//             <SelectItem value="jenkins">Jenkins</SelectItem>
-//             <SelectItem value="aws">AWS Code Pipeline</SelectItem>
-//           </SelectContent>
-//         </Select>
-//       </div>
-
-//       <div className="mb-4">
-//         <label className="block font-semibold mb-1">Target Technology</label>
-//         <Select onValueChange={setTargetTechnology}>
-//           <SelectTrigger className="w-full border rounded p-2">
-//             <SelectValue placeholder="Select the Target Platform" />
-//           </SelectTrigger>
-//           <SelectContent>
-//             <SelectItem value="azure">Azure DevOps YAML</SelectItem>
-//             <SelectItem value="jenkins">Jenkins</SelectItem>
-//             <SelectItem value="aws">AWS Code Pipeline</SelectItem>
-//           </SelectContent>
-//         </Select>
-//       </div>
-
-//       <div className="mb-4">
-//         <label className="block font-semibold mb-1">Operating System</label>
-//         <Select onValueChange={setOS}>
-//           <SelectTrigger className="w-full border rounded p-2">
-//             <SelectValue placeholder="Select the OS" />
-//           </SelectTrigger>
-//           <SelectContent>
-//             <SelectItem value="windows">Windows</SelectItem>
-//             <SelectItem value="linux">Linux</SelectItem>
-//             <SelectItem value="ubuntu">Ubuntu</SelectItem>
-//           </SelectContent>
-//         </Select>
-//       </div>
-
-//       <div
-//         className="border border-dashed border-gray-400 rounded-md p-6 text-center cursor-pointer mb-4"
-//         onDragOver={(e) => e.preventDefault()}
-//        onDrop={(e) => {
-//   e.preventDefault();
-//   const file = e.dataTransfer.files[0];
-//   console.log("Dropped file:", file);
-//   if (file) handleFile(file);
-// }}
-
-//         onClick={() => document.getElementById('fileInput')?.click()}
-//       >
-//         <p className="text-sm text-gray-500">Drag & drop your pipeline file here, or click to select</p>
-//         <input
-//           id="fileInput"
-//           type="file"
-//           accept=".yml,.yaml,.groovy,.txt"
-//           onChange={(e) => {
-//             if (e.target.files?.[0]) handleFile(e.target.files[0]);
-//           }}
-//           className="hidden"
-//         />
-//       </div>
-
-//       <div className="mb-4">
-//         <label className="block font-semibold mb-1">Uploaded Pipeline Preview</label>
-//         <Textarea
-//           value={fileContent}
-//           className="h-[200px] resize-none bg-black text-green-400 font-mono"
-//           readOnly
-//         />
-//       </div>
-
-//       <Button onClick={handleConvert} disabled={isLoading}>
-//         {isLoading ? (
-//           <>
-//             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-//             Converting...
-//           </>
-//         ) : (
-//           "Convert"
-//         )}
-//       </Button>
-
-//       {convertedPipeline && (
-//         <div className="mt-6">
-//           <h3 className="font-bold mb-2">Converted Pipeline Output</h3>
-//           <Textarea
-//             value={convertedPipeline}
-//             className="h-[300px] resize-none bg-gray-100 text-black font-mono"
-//             readOnly
-//           />
-//         </div>
-//       )}
-//     </div>
-//   );
-// }

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import ReactMarkdown from 'react-markdown';
+import type { ReactElement } from 'react';
 
 import { CheckCircle2, CircleArrowDown, CircleArrowRight, CircleArrowUp, Search } from 'lucide-react';
 import {
@@ -582,26 +583,82 @@ const handleSubmit = () => {
                 {isSidebarOpen && (
                   <div className="h-[16rem] bg-[black] rounded-md text-[14px] cursor-default overflow-y-auto w-full p-3 space-y-2">
                     
-             <ReactMarkdown
+          <ReactMarkdown
   remarkPlugins={[remarkGfm]}
   rehypePlugins={[rehypeRaw]}
   components={{
-    // Add margin above numbered headings like "1. Description"
-    p({ node, children }) {
-      const text = React.Children.toArray(children).join('');
-      const isSectionTitle = /^\d+\.\s.+$/.test(text);
+    // ✅ This is the updated paragraph renderer
+  p({ children }) {
+  const safeChildren = React.Children.toArray(children);
 
-      if (isSectionTitle) {
-        return <p className="mt-4 font-semibold text-white">{text}</p>;
+  const rawText = safeChildren
+    .map((child) => {
+      if (typeof child === 'string') return child;
+
+      if (React.isValidElement(child)) {
+        const element = child as React.ReactElement<any, any>;
+        const inner = element.props?.children;
+
+        if (typeof inner === 'string') return inner;
+        if (Array.isArray(inner)) {
+          return inner.map((i) => (typeof i === 'string' ? i : '')).join('');
+        }
       }
 
-      return <p className="text-white">{children}</p>;
+      return '';
+    })
+    .join('')
+    .trim();
+
+  const isSectionTitle = /^\d+\.\s.+$/.test(rawText); // e.g., "1. Description"
+  const isSubHeader = /.+:\s*$/.test(rawText);        // e.g., "Tool:" or "Stage:"
+
+  if (isSectionTitle) {
+    return (
+      <p  className="mt-5 mb-2 text-base font-semibold text-blue-400">
+        {children}
+      </p>
+    );
+  }
+
+  if (isSubHeader) {
+    return (
+      <p className="mt-3 mb-1 text-sm font-medium text-green-400">
+        {children}
+      </p>
+    );
+  }
+
+  return <p className="mb-2 text-white">{children}</p>;
+},
+
+
+    strong({ children }) {
+      return <strong className="font-bold text-yellow-300">{children}</strong>;
     },
 
-    // Disable special rendering for inline code (`like this`)
-    code({ children, className }) {
-      return <>{children}</>; // just render raw text, no styling
+    li({ children }) {
+      return <li className="ml-6 list-disc text-white">{children}</li>;
     },
+
+    code({ children }) {
+      return <code className="text-white">{children}</code>;
+    },
+
+    pre({ children }) {
+      return <pre className="bg-black p-4 rounded text-white overflow-auto">{children}</pre>;
+    },
+
+    h1({ children }) {
+  return <h1 className="mt-2 mb-2 text-lg font-bold text-purple-400">{children}</h1>;
+},
+h2({ children }) {
+  return <h2 className="mt-2 mb-1 text-lg font-semibold text-purple-300">{children}</h2>;
+},
+h3({ children }) {
+  return <h3 className="mt-1 mb-1 text-lg font-medium text-purple-200">{children}</h3>;
+},
+
   }}
 >
   {responseText}
