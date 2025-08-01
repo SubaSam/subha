@@ -17,7 +17,7 @@ export interface ChatItem {
 
 
 export interface ChatMessage {
-  sender: 'user' | 'assistant';
+  sender: 'user' | 'assistant' | 'loading';
   text: string;
   time: string;
 }
