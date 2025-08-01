@@ -18,6 +18,8 @@ import { ScrollArea, Scrollbar } from '@radix-ui/react-scroll-area';
 import ExtractedSections from './extractedSection';
 import { useNavigate } from 'react-router-dom';
 // const navigate = useNavigate(); // ✅ Correct
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 
 const GITHUB_KEY = "recentGithubUrls";
 type Props = {
@@ -578,34 +580,36 @@ const handleSubmit = () => {
            {!showCard && (
               <>
                 {isSidebarOpen && (
-                  // <div className="h-[13.6rem] cursor-default overflow-y-auto w-full p-4 space-y-4">
-                  //   <div className=" p-2 rounded bg-[#000000] text-white">
-                  //     <ReactMarkdown>{responseText}</ReactMarkdown>
-                  //   </div>
-
-                  // </div>
-                   <div className="h-[14.7rem] text-[14px] leading-loose bg-[#1f1f1f] cursor-default overflow-y-auto break-words w-full p-2 ">
-                    <ReactMarkdown
+                  <div className="h-[16rem] bg-[black] rounded-md text-[14px] cursor-default overflow-y-auto w-full p-3 space-y-2">
+                    
+             <ReactMarkdown
+  remarkPlugins={[remarkGfm]}
+  rehypePlugins={[rehypeRaw]}
   components={{
-    p({ children }) {
+    // Add margin above numbered headings like "1. Description"
+    p({ node, children }) {
       const text = React.Children.toArray(children).join('');
+      const isSectionTitle = /^\d+\.\s.+$/.test(text);
 
-      const isSectionTitle = /^\d+\.\s.+$/.test(text); // e.g., "1. Description"
       if (isSectionTitle) {
-        return null; // Don't render the title paragraph
+        return <p className="mt-4 font-semibold text-white">{text}</p>;
       }
 
-      return <p>{text}</p>;
+      return <p className="text-white">{children}</p>;
+    },
+
+    // Disable special rendering for inline code (`like this`)
+    code({ children, className }) {
+      return <>{children}</>; // just render raw text, no styling
     },
   }}
 >
   {responseText}
 </ReactMarkdown>
 
-        {/* {responseText && (
-          <ExtractedSections responseText={responseText} />
-        )} */}
-      </div>
+                    </div>
+
+                             
                 )}
 
                 <div
@@ -662,7 +666,7 @@ const handleSubmit = () => {
             // onClick={handleGenerate}
              onClick={() => handleGenerate(customInstruction)}
 
-            className="px-4  mt-2 py-2 h-8 border border-black bg-white text-black dark:text-black rounded-md"
+            className="px-4  mt-3 py-2 h-8 border border-black bg-white text-black dark:text-black rounded-md"
           >
             Generate
           </Button>

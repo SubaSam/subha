@@ -161,10 +161,10 @@ const [isMinimized, setIsMinimized] = useState(false);
     <>
       {showChat && !isMinimized && (
         <>
-          <div className="w-full h-[26.5rem] bg-[#f9f9f9] dark:bg-[#0B0B0B] border border-black rounded-md text-black dark:text-white flex flex-col shadow-xl">
+          <div className="w-full h-[26.5rem] bg-[#E7E7E7] dark:bg-[#0B0B0B] border border-black rounded-md text-black dark:text-white flex flex-col shadow-xl">
           {/* <div className="h-full flex flex-col bg-[#0B0B0B] border rounded-md text-white shadow-xl"> */}
 
-            <div className="flex items-center justify-between text-black dark:text-white px-4 py-2 border-b border-black dark:border-gray-700 bg-[#f9f9f9] dark:bg-[#0B0B0B] rounded-t-md">
+            <div className="flex items-center justify-between text-black dark:text-white px-4 py-2 border-b border-black dark:border-gray-700 bg-[#E7E7E7] dark:bg-[#0B0B0B] rounded-t-md">
               <div className="text-sm flex flex-row gap-1">< MessageSquareMore className='h-5 w-5'/><span className='mt-[-1px]'>Chat</span></div>
               <div className="flex items-center gap-2">
                 <button
@@ -369,7 +369,7 @@ const [isMinimized, setIsMinimized] = useState(false);
       )}
 
 {showChat && isMinimized && (
-  <div className="fixed bottom-21 right-15 bg-[#000000] text-black dark:text-white border border-gray-600 rounded-md shadow-lg px-2 py-2 flex items-center justify-between w-75 z-50">
+  <div className="fixed bottom-21 right-15 bg-[#E7E7E7] dark:bg-[#000000] text-black dark:text-white border border-gray-600 rounded-md shadow-lg px-2 py-2 flex items-center justify-between w-75 z-50">
     <div className="flex items-center gap-2">
       <MessageSquareMore className="w-4 h-4" />
       <span className="text-sm">Chat </span>

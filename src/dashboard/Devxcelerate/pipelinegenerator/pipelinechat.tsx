@@ -283,16 +283,16 @@ const addMessageToCurrentSession = (msg: Message) => {
       <>
       {showChat && !isMinimized &&  (
         <>
-      <div className="w-full h-[420px] bg-[#0B0B0B] border rounded-md text-white flex flex-col shadow-xl">
+      <div className="w-full h-[420px] bg-[#E7E7E7] dark:bg-[#0B0B0B] border border-black rounded-md text-black dark:text-white flex flex-col shadow-xl">
       {/* <div className="fixed inset-0 z-50 bg-[#0B0B0B] text-white flex flex-col shadow-xl"> */}
 
-        <div className="flex items-center justify-between px-4 py-2 border-b border-gray-700 bg-[#0B0B0B] rounded-t-md">
+        <div className="flex items-center justify-between px-4 py-2 border-b border-gray-700 bg-[#E7E7E7] dark:bg-[#0B0B0B] rounded-t-md">
           <div className="text-sm flex flex-row gap-1"><MessageSquareMore />Chat</div>
           <div className="flex items-center gap-2">
             <Minus
  onClick={() => {setIsMinimized(true); setIsSidebarOpen(true);}}
 
-className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
+className="w-4 h-4 cursor-pointer text-black dark:text-white" />
             <X 
   onClick={() => {
   setShowChat(false);       // this closes the chat
@@ -301,19 +301,19 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
 
 
                   
- className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
+ className="w-4 h-4 cursor-pointer text-black dark:text-white" />
           </div>
         </div>
 
         
         <Tabs value={tab} onValueChange={setTab} className="flex flex-col  overflow-hidden">
           <TabsList className="flex border-b border-gray-700">
-            <TabsTrigger value="refine" className={`flex flex-row px-4 py-2 text-sm ${tab === 'refine' ? 'text-white border-b-2 border-purple-500' : 'text-gray-400'}`}>
+            <TabsTrigger value="refine" className={`flex flex-row px-4 py-2 text-sm ${tab === 'refine' ? 'text-black dark:text-white border-b-2 border-purple-500' : 'text-gray-400'}`}>
              <img src="/refineexperts.svg" className='w-4 h-3.5 mt-0.5'/>
              <p className='ml-1'> Refine Experts</p>
               
             </TabsTrigger>
-            <TabsTrigger value="change" className={`flex flex-row px-4 py-2 text-sm ${tab === 'change' ? 'text-white border-b-2 border-purple-500' : 'text-gray-400'}`}>
+            <TabsTrigger value="change" className={`flex flex-row px-4 py-2 text-sm ${tab === 'change' ? 'text-black dark:text-white border-b-2 border-purple-500' : 'text-gray-400'}`}>
              <img src="/changerequest.svg" className='w-4 h-3.5 mt-0.5'/>
              <p className='ml-1'> Change Request </p>
  
@@ -321,7 +321,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
             {tab === 'refine' && (
                 <div className="flex ml-auto mt-1 space-x-2">
                 <Button
-                  className="h-8 border border-gray-600  text-black dark:text-gray-300 text-sm  bg-[#0B0B0B] "
+                  className="h-8 border border-gray-600  text-black dark:text-gray-300 text-sm  bg-[white] dark:bg-[#0B0B0B] "
                   onClick={() => {
   setChatMessages([]);
   const newSession: ChatSession = {
@@ -347,7 +347,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
                 </Button>
 
                 <Button
-                  className="h-8 border border-gray-600  text-black dark:text-gray-300 text-sm bg-[#0B0B0B]  "
+                  className="h-8 border border-gray-600  text-black dark:text-gray-300 text-sm bg-[white] dark:bg-[#0B0B0B]  "
                   onClick={() => setShowHistory(true)}
                 >
                   <img className="h-4 w-4 mt-1" src="/chathistory.svg" />
@@ -376,13 +376,13 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
                 </Button> */}
 <Button
   onClick={handleStartRefinement}
-  className="bg-white text-black"
+  className="bg-black dark:bg-white text-white dark:text-black"
   // disabled={isLoading}
 >
   {isLoading ? (
     <div className="flex items-center gap-2">
       <svg
-        className="animate-spin h-4 w-4 text-black"
+        className="animate-spin h-4 w-4 text-white dark:text-black"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
@@ -428,7 +428,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
           <img className='h-3.5 w-3 mt-0.5 ' src="/user.svg" />
           User <span className='ml-2 text-xs mt-1 text-gray-300'>{msg.time}</span>
         </div>
-        <div className="bg-[#262626] border border-[#497245] text-sm px-4 py-2 whitespace-pre-wrap break-words rounded-md w-fit max-w-full  ">
+        <div className="bg-[#e1dbd6] dark:bg-[#262626] border border-[#497245] text-sm px-4 py-2 whitespace-pre-wrap break-words rounded-md w-fit max-w-full  ">
           {msg.text}
         </div>
       </>
@@ -439,7 +439,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
           <img className='h-3.5 w-3 mt-0.5 mr-0.5' src="/agent.svg" />
           Refinement Agent <span className='ml-1 text-xs mt-1 text-white'>{msg.time}</span>
         </div>
-      <div className="bg-[#262626] border border-[#958686] text-sm px-4 py-2 rounded-md  break-words rounded-md w-fit max-w-full">
+      <div className="bg-[#e1dbd6] dark:bg-[#262626] border border-[#958686] text-sm px-4 py-2 rounded-md  break-words rounded-md w-fit max-w-full">
       <ReactMarkdown
   remarkPlugins={[remarkGfm]}
   rehypePlugins={[rehypeRaw]}
@@ -498,7 +498,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
           <img className='h-3.5 w-3 mt-0.5 mr-1' src="/expert.svg" />
           DevOps Expert <span className='ml-2 text-xs mt-1 text-gray-300'>{msg.time}</span>
         </div>
-        <div className="bg-[#262626] border border-[#4071A7] px-4 py-2 rounded-md  break-words text-sm w-fit max-w-full">
+        <div className="bg-[#e1dbd6] dark:bg-[#262626] border border-[#4071A7] px-4 py-2 rounded-md  break-words text-sm w-fit max-w-full">
           <ReactMarkdown
   remarkPlugins={[remarkGfm]}
   rehypePlugins={[rehypeRaw]}
@@ -702,7 +702,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
                     <img src="/purplearrow.svg"/>
                   </button>
                   <p className='text-sm p-1'>Below are some example for change request instructions:</p>
-                  <p className='text-sm p-1  ml-2 text-white'>
+                  <p className='text-sm p-1  ml-2 text-black dark:text-white'>
                     1. Clearly describe what change you want to make to the pipeline.<br/>
                     2. Explain the reason or goal behind your requested change.<br/>
                     3. Mention any specific steps, files, or parts of the pipeline affected by this change.</p>
@@ -715,7 +715,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
       
       {showModal && (
       <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-transparent bg-black/60">
-        <div className="bg-[#1a1a1a] text-white p-6 rounded-xl shadow-xl w-[90%] max-w-md text-center">
+        <div className="bg-[#1a1a1a] text-black dark:text-white p-6 rounded-xl shadow-xl w-[90%] max-w-md text-center">
            <p className="text-white text-lg mt-9">
               Do you want to replace the pipeline Code with original?
             </p>
@@ -744,7 +744,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
       )}
 
       {showSuccess && (
-        <div className=" fixed bottom-4 flex flex-row text-white px-4 py-2 rounded-lg shadow-lg z-50">
+        <div className=" fixed bottom-4 ml-5flex flex-row text-black dark:text-white px-4 py-2 rounded-lg shadow-lg z-50">
           <span >
           <svg xmlns="http://www.w3.org/2000/svg" width="30.266" height="20" viewBox="0 0 30.266 30.266">
                 <g id="check-circle-fill" transform="translate(0 0)">
@@ -760,7 +760,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
 
     
       {showChat && isMinimized && (
-  <div className="fixed bottom-21 right-15 bg-[#f9f9f9] dark:bg-[#0B0B0B] text-black dark:text-white border border-gray-600 rounded-md shadow-lg px-2 py-2 flex items-center justify-between w-75 z-50">
+  <div className="fixed bottom-21 right-15 bg-[#E7E7E7] dark:bg-[#0B0B0B] text-black dark:text-white border border-gray-600 rounded-md shadow-lg px-2 py-2 flex items-center justify-between w-75 z-50">
     <div className="flex items-center gap-2">
       <MessageSquareMore className="w-4 h-4" />
       <span className="text-sm">Chat </span>
@@ -781,7 +781,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
           setIsSidebarOpen(true);
           setIsMinimized(false);
         }}
-        className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white"
+        className="w-4 h-4 cursor-pointer text-black dark:text-white"
       />
     </div>
   </div>

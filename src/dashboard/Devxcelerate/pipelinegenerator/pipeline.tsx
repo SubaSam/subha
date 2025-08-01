@@ -18,10 +18,10 @@ export function Pipeline(): JSX.Element {
   const [completedSteps, setCompletedSteps] = useState<{ [key: number]: boolean }>({});
 
   // ✅ Optional: enforce sequential step flow
-  const isStepEnabled = (index: number) => {
-    if (index === 1) return true;
-    return completedSteps[index - 1] === true;
-  };
+  // const isStepEnabled = (index: number) => {
+  //   if (index === 1) return true;
+  //   return completedSteps[index - 1] === true;
+  // };
 React.useEffect(() => {
   if (step === 3) {
     setCompletedSteps((prev) => ({ ...prev, 3: true }));
@@ -36,7 +36,7 @@ React.useEffect(() => {
           <React.Fragment key={s}>
             <button
               // Uncomment to restrict future steps until prior ones are done
-              disabled={!isStepEnabled(s)}
+              // disabled={!isStepEnabled(s)}
               onClick={() => setStep(s)}
               className={`flex items-center p-1 gap-1 rounded-md text-sm  
                 ${step === s ? 'bg-purple-500 text-black dark:text-white' : 'text-black dark:text-white/60'} transition-colors duration-300`}

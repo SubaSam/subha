@@ -242,7 +242,7 @@ return (
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 30.266 30.266">
           <path d="M30.266,15.133A15.133,15.133,0,1,1,15.133,0,15.133,15.133,0,0,1,30.266,15.133ZM22.756,9.4a1.419,1.419,0,0,0-2.043.042l-6.57,8.37-3.959-3.961a1.419,1.419,0,0,0-2.005,2.005l5.005,5.007a1.419,1.419,0,0,0,2.041-.038l7.551-9.439A1.419,1.419,0,0,0,22.758,9.4Z" fill="#24d304"/>
         </svg>
-        <span className="text-white">{successMessage}</span>
+        <span className="text-black dark:text-white">{successMessage}</span>
       </>
     )}
   </div>
@@ -252,7 +252,7 @@ return (
     <Button onClick={handleBack} className="px-4 py-2 h-8 bg-[#2B2B2B] text-white rounded-md  w-24">
       Back
     </Button>
-    <Button onClick={handleProceed} className="px-4 py-2 h-8 bg-white text-black rounded-md  w-24">
+    <Button onClick={handleProceed} className="px-4 py-2 h-8 border border-black bg-white text-black rounded-md  w-24">
       Confirm
     </Button>
   </div>

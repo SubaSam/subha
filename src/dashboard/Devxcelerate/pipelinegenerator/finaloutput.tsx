@@ -193,7 +193,7 @@ const detectedLang = finalPipeline.includes("pipeline {") ? "groovy" : "yaml";
                   fill="#24d304"
                 />
               </svg>
-              <span className="text-white">{successMessage}</span>
+              <span className="text-black dark:text-white">{successMessage}</span>
             </>
           )}
         </div>
