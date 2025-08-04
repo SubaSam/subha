@@ -18,7 +18,7 @@ type Props = {
 };
 
 
-export default function Converterfinaloutput({ goToStep , finalPipeline}: Props): JSX.Element {
+export default function ConverterFinalOutput({ goToStep , finalPipeline}: Props): JSX.Element {
   const handleBack = () => goToStep(2);
   const [successMessage, setSuccessMessage] = useState<string | null>(
     'Extracted Final Output Successfully!'
@@ -43,21 +43,25 @@ const [ciCdTool, setCiCdTool] = useState<string | null>(null);
 //   const blob = new Blob([finalPipeline], { type: 'text/plain' });
 //   const link = document.createElement('a');
 //   link.href = URL.createObjectURL(blob);
-//   link.download = 'Pipeline.txt';
+//   link.download = 'Pipeline';
 //   document.body.appendChild(link);
 //   link.click();
 //   document.body.removeChild(link);
 // };
 const handleDownload = () => {
-  if (!finalPipeline || !ciCdTool) return;
+  console.log('Final Pipeline:', finalPipeline);
+  console.log(typeof finalPipeline);
+  console.log('CI/CD Tool:', ciCdTool);
+  if (!finalPipeline) return;
 
-  const tool = ciCdTool.toLowerCase(); // e.g., 'jenkins' or 'azure'
+  const tool = finalPipeline.toString().toLowerCase().includes('azure') ? 'azure' : 'jenkins';
+  console.log('Detected Tool:', tool);
   let fileName: string | null = null;
 
   if (tool === 'jenkins') {
-    fileName = 'Jenkinsfile'; // no extension
+    fileName = 'Jenkins'; // no extension
   } else if (tool === 'azure') {
-    fileName = 'azure-pipeline.yaml';
+    fileName = 'azure-pipeline.yml'; // with .yml extension
   }
 
   if (!fileName) return; // prevent download if tool is unrecognized
@@ -79,10 +83,10 @@ const detectedLang = finalPipeline.includes("pipeline {") ? "groovy" : "yaml";
       <div className="flex flex-row space-x-2 mt-2">
         {/* LEFT SIDEBAR */}
         {isSidebarOpen && (
-          <div className="bg-[#f9f9f9] dark:bg-[#171717] p-3 w-full rounded-lg shadow-md text-black dark:text-white text-[14px] space-y-4 h-[26.5rem] ">
+          <div className="bg-[#f9f9f9] dark:bg-[#171717] p-3 w-full rounded-lg shadow-md text-black dark:text-white text-[14px] space-y-4 h-[29rem] ">
             <p>Final Output</p>
 
-            <div className="h-[22rem] rounded-md border border-gray-700 flex flex-col relative">
+            <div className="h-[25.5rem] rounded-md border border-gray-700 flex flex-col relative">
               <pre className="bg-[#f5f5f5] dark:bg-[#1f1f1f] text-black dark:text-white p-2 overflow-y-auto rounded-md text-sm whitespace-pre-wrap flex-grow">
                 {/* {finalPipeline} */}
             {finalPipeline && (
@@ -151,7 +155,7 @@ const detectedLang = finalPipeline.includes("pipeline {") ? "groovy" : "yaml";
   
         {!isSidebarOpen && (
   <div
-    className="w-8 h-[26rem] rounded-md bg-[#f9f9f9] dark:bg-[#1F1F1F] text-sm border border-gray-700 flex items-center justify-center cursor-pointer"
+    className="w-8 h-[29rem] rounded-md bg-[#f9f9f9] dark:bg-[#1F1F1F] text-sm border border-gray-700 flex items-center justify-center cursor-pointer"
     onClick={() => {
       setShowChat(false);
       setIsSidebarOpen(true);
@@ -189,7 +193,7 @@ const detectedLang = finalPipeline.includes("pipeline {") ? "groovy" : "yaml";
                   fill="#24d304"
                 />
               </svg>
-              <span className="text-white">{successMessage}</span>
+              <span className="text-black dark:text-white">{successMessage}</span>
             </>
           )}
         </div>

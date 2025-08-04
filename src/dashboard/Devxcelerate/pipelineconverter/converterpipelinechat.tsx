@@ -15,14 +15,7 @@ import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { HTMLAttributes } from 'react';
 
 
-// type Props = {
-//   goToStep: (step: number) => void;
-//   setIsSidebarOpen: (val: boolean) => void;
-//   setShowChat: (val: boolean) => void;
-//   showChat: boolean;
-//   onSendRequestChange: (instruction: string) => void;
-//   currentPipeline: string;
-// };
+
 
 type Props = {
   goToStep: (step: number) => void;
@@ -49,7 +42,7 @@ type ChatSession = {
 
 const CHAT_HISTORY_KEY = "pipeline_chat_sessions";
 
-export default function PipelineChat({
+export default function ConverterPipelineChat({
   goToStep,
   setIsSidebarOpen,
   setShowChat,
@@ -60,9 +53,9 @@ export default function PipelineChat({
 }: Props) {
   const [tab, setTab] = useState("refine");
   const [refinementStarted, setRefinementStarted] = useState(false);
-
-//   const [refinementAgentMessage, setRefinementAgentMessage] = useState("");
-// const [devOpsExpertMessage, setDevOpsExpertMessage] = useState("");
+const [isRefinerTyping, setIsRefinerTyping] = useState(false);
+const [isDevopsTyping, setIsDevopsTyping] = useState(false);
+																										 
 const [refinementAgentMessage, setRefinementAgentMessage] = useState<Message[]>([]);
  const [devOpsExpertMessage, setDevOpsExpertMessage] = useState<Message[]>([]);
   const [typedInstruction, setTypedInstruction] = useState("");
@@ -159,6 +152,8 @@ setFeedbackInstruction("");  // clear input
 const handleStartRefinement = async () => {
   try {
     setIsLoading(true); // ⏳ Start loading
+    setIsRefinerTyping(true);
+    setIsDevopsTyping(true);
 
     const response = await fetch("http://127.0.0.1:8000/start-refinement", {
       method: "POST",
@@ -177,20 +172,20 @@ const handleStartRefinement = async () => {
     const data = await response.json();
     const refinement_agent_message = data.refiner;
     const devops_expert_message = data.devops;
-    const now = getCurrentTime();
+								 
 
-    if (refinement_agent_message) {
-      setChatMessages(prev => [
-        ...prev,
-        { text: refinement_agent_message, time: now, sender: "refiner" },
-      ]);
-    }
-    if (devops_expert_message) {
-      setChatMessages(prev => [
-        ...prev,
-        { text: devops_expert_message, time: now, sender: "devops" },
-      ]);
-    }
+								   
+							   
+				
+																											 
+		 
+	 
+								
+							   
+				
+																									   
+		 
+	 
 
     setRefinementStarted(true);
     setRefinementAgentMessage(
@@ -200,11 +195,47 @@ const handleStartRefinement = async () => {
       devops_expert_message || "DevOps expert did not respond."
     );
 
+    // ⏱️ Delayed response for more realistic chat
+    if (refinement_agent_message) {
+      setTimeout(() => {
+        setChatMessages(prev => [
+          ...prev,
+          {
+            text: refinement_agent_message,
+            time: getCurrentTime(),
+            sender: "refiner",
+          },
+        ]);
+        setIsRefinerTyping(false);
+      }, 1000); // 1s delay
+    } else {
+      setIsRefinerTyping(false);
+    }
+
+    if (devops_expert_message) {
+      setTimeout(() => {
+        setChatMessages(prev => [
+          ...prev,
+          {
+            text: devops_expert_message,
+            time: getCurrentTime(),
+            sender: "devops",
+          },
+        ]);
+        setIsDevopsTyping(false);
+      }, 2000); // 2s delay
+    } else {
+      setIsDevopsTyping(false);
+    }
+
     console.log("refine", refinement_agent_message);
     console.log("expert", devops_expert_message);
+
   } catch (err) {
     console.error("Error:", err);
     alert("Failed to start refinement. Check API.");
+    setIsRefinerTyping(false);
+    setIsDevopsTyping(false);
   } finally {
     setIsLoading(false); // ✅ Stop loading
   }
@@ -213,6 +244,9 @@ const handleStartRefinement = async () => {
 
 const sendFeedback = async (feedback: string) => {
   try {
+    setIsRefinerTyping(true);
+    setIsDevopsTyping(true);
+
     const response = await fetch('http://127.0.0.1:8000/send-feedback', {
       method: 'POST',
       headers: {
@@ -230,15 +264,35 @@ const sendFeedback = async (feedback: string) => {
 
     const now = getCurrentTime();
 
+    // ⏱️ Simulate "typing..." and delayed arrival
     if (refinementAgentMessagefromapi) {
-  setChatMessages(prev => [...prev, { text: refinementAgentMessagefromapi, time: now, sender: 'refiner' }]);
-}
-if (devOpsExpertMessagefromapi) {
-  setChatMessages(prev => [...prev, { text: devOpsExpertMessagefromapi, time: now, sender: 'devops' }]);
-}
+      setTimeout(() => {
+        setChatMessages(prev => [
+          ...prev,
+          { text: refinementAgentMessagefromapi, time: getCurrentTime(), sender: 'refiner' },
+        ]);
+        setIsRefinerTyping(false);
+      }, 1000); // 1s delay
+    } else {
+      setIsRefinerTyping(false);
+    }
+
+    if (devOpsExpertMessagefromapi) {
+      setTimeout(() => {
+        setChatMessages(prev => [
+          ...prev,
+          { text: devOpsExpertMessagefromapi, time: getCurrentTime(), sender: 'devops' },
+        ]);
+        setIsDevopsTyping(false);
+      }, 2000); // 1.5s delay
+    } else {
+      setIsDevopsTyping(false);
+    }
 
   } catch (error) {
     console.error("Failed to send feedback:", error);
+    setIsRefinerTyping(false);
+    setIsDevopsTyping(false);
   }
 };
 
@@ -278,20 +332,21 @@ const addMessageToCurrentSession = (msg: Message) => {
 };
 
 
+
   return (
       <>
       {showChat && !isMinimized &&  (
         <>
-      <div className="w-full h-[420px] bg-[#0B0B0B] border rounded-md text-white flex flex-col shadow-xl">
+      <div className="w-full h-[468px] bg-[#E7E7E7] dark:bg-[#0B0B0B] border rounded-md text-black dark:text-white flex flex-col shadow-xl">
       {/* <div className="fixed inset-0 z-50 bg-[#0B0B0B] text-white flex flex-col shadow-xl"> */}
 
-        <div className="flex items-center justify-between px-4 py-2 border-b border-gray-700 bg-[#0B0B0B] rounded-t-md">
+        <div className="flex items-center justify-between px-4 py-2 border-b border-gray-700 bg-[#E7E7E7] dark:bg-[#0B0B0B] rounded-t-md">
           <div className="text-sm flex flex-row gap-1"><MessageSquareMore />Chat</div>
           <div className="flex items-center gap-2">
             <Minus
  onClick={() => {setIsMinimized(true); setIsSidebarOpen(true);}}
 
-className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
+className="w-4 h-4 cursor-pointer text-black dark:text-white" />
             <X 
   onClick={() => {
   setShowChat(false);       // this closes the chat
@@ -300,19 +355,19 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
 
 
                   
- className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
+ className="w-4 h-4 cursor-pointer text-black dark:text-white" />
           </div>
         </div>
 
         
         <Tabs value={tab} onValueChange={setTab} className="flex flex-col  overflow-hidden">
           <TabsList className="flex border-b border-gray-700">
-            <TabsTrigger value="refine" className={`flex flex-row px-4 py-2 text-sm ${tab === 'refine' ? 'text-white border-b-2 border-purple-500' : 'text-gray-400'}`}>
+            <TabsTrigger value="refine" className={`flex flex-row px-4 py-2 text-sm ${tab === 'refine' ? 'text-black dark:text-white border-b-2 border-purple-500' : 'text-gray-400'}`}>
              <img src="/refineexperts.svg" className='w-4 h-3.5 mt-0.5'/>
              <p className='ml-1'> Refine Experts</p>
               
             </TabsTrigger>
-            <TabsTrigger value="change" className={`flex flex-row px-4 py-2 text-sm ${tab === 'change' ? 'text-white border-b-2 border-purple-500' : 'text-gray-400'}`}>
+            <TabsTrigger value="change" className={`flex flex-row px-4 py-2 text-sm ${tab === 'change' ? 'text-black dark:text-white border-b-2 border-purple-500' : 'text-gray-400'}`}>
              <img src="/changerequest.svg" className='w-4 h-3.5 mt-0.5'/>
              <p className='ml-1'> Change Request </p>
  
@@ -320,7 +375,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
             {tab === 'refine' && (
                 <div className="flex ml-auto mt-1 space-x-2">
                 <Button
-                  className="h-8 border border-gray-600  text-black dark:text-gray-300 text-sm  bg-[#0B0B0B] "
+                  className="h-8 border border-gray-600  text-black dark:text-gray-300 text-sm  bg-[white] dark:bg-[#0B0B0B] "
                   onClick={() => {
   setChatMessages([]);
   const newSession: ChatSession = {
@@ -346,7 +401,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
                 </Button>
 
                 <Button
-                  className="h-8 border border-gray-600  text-black dark:text-gray-300 text-sm bg-[#0B0B0B]  "
+                  className="h-8 border border-gray-600  text-black dark:text-gray-300 text-sm bg-[white] dark:bg-[#0B0B0B]  "
                   onClick={() => setShowHistory(true)}
                 >
                   <img className="h-4 w-4 mt-1" src="/chathistory.svg" />
@@ -358,7 +413,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
 
           {/* Refine Tab */}
           <TabsContent value="refine" className="relative  h-[60vh] w-full p-2  ">
-            <div className="flex flex-col h-[37vh] w-full">
+            <div className="flex flex-col h-[44vh] w-full">
               <div className={`${refinementStarted ? 'invisible' : 'visible'} transition-all duration-300`}>
                {!refinementStarted && (
                 <>
@@ -375,13 +430,13 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
                 </Button> */}
 <Button
   onClick={handleStartRefinement}
-  className="bg-white text-black"
+  className="bg-black dark:bg-white text-white dark:text-black"
   // disabled={isLoading}
 >
   {isLoading ? (
     <div className="flex items-center gap-2">
       <svg
-        className="animate-spin h-4 w-4 text-black"
+        className="animate-spin h-4 w-4 text-white dark:text-black"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
@@ -414,7 +469,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
               </div>
 
               
-                <div className='h-65 w-full overflow-y-auto'>
+                <div className='h-72 w-full overflow-y-auto'>
                 {refinementStarted && (
 <div className="space-y-2  overflow-y-auto px-2 max-w-full sm:max-w-[1000px] mr-auto">
 
@@ -425,21 +480,21 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
       <>
         <div className="text-sm flex gap-1 text-[#86CB81]">
           <img className='h-3.5 w-3 mt-0.5 ' src="/user.svg" />
-          User <span className='ml-2 text-xs mt-1 text-gray-300'>{msg.time}</span>
+          User 
         </div>
-        <div className="bg-[#262626] border border-[#497245] text-sm px-4 py-2 whitespace-pre-wrap break-words rounded-md w-fit max-w-full  ">
-          {msg.text}
+        <div className="bg-[#e1dbd6] dark:bg-[#262626] border border-[#497245] relative text-sm px-4 py-2 pb-5 whitespace-pre-wrap break-words rounded-md w-fit max-w-full  ">
+          {msg.text} <span className='absolute bottom-1 right-1 text-[10px] text-gray-300'>{msg.time}</span>
         </div>
       </>
     )}
     {msg.sender === 'refiner' && (
       <>
         <div className="text-sm gap-1 flex flex-row text-[#FFD5D5]">
-          <img className='h-3.5 w-3 mt-0.5 mr-0.5' src="/agent.svg" />
-          Refinement Agent <span className='ml-1 text-xs mt-1 text-white'>{msg.time}</span>
+          <img className='h-3.5 w-3 mt-0.5 ' src="/agent.svg" />
+          Refinement Agent 
         </div>
-      <div className="bg-[#262626] border border-[#958686] text-sm px-4 py-2 rounded-md  break-words rounded-md w-fit max-w-full">
-      <ReactMarkdown
+      <div className="relative bg-[#e1dbd6] dark:bg-[#262626] border border-[#958686] text-sm px-4 py-2 pb-5 rounded-md  break-words rounded-md w-fit max-w-full">
+<ReactMarkdown
   remarkPlugins={[remarkGfm]}
   rehypePlugins={[rehypeRaw]}
   components={{
@@ -486,6 +541,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
 >
   {msg.text}
 </ReactMarkdown>
+<span className='absolute bottom-1 right-2 text-[10px] text-gray-300'>{msg.time}</span>
 
 
         </div>
@@ -494,10 +550,10 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
     {msg.sender === 'devops' && (
       <>
         <div className="text-sm flex flex-row text-[#BEDAFF]">
-          <img className='h-3.5 w-3 mt-0.5 mr-1' src="/expert.svg" />
-          DevOps Expert <span className='ml-2 text-xs mt-1 text-gray-300'>{msg.time}</span>
+          <img className='h-3.5 w-3 mt-0.9 mr-1' src="/expert.svg" />
+          <span className='mt-[-1.6px]'>DevOps Expert </span>
         </div>
-        <div className="bg-[#262626] border border-[#4071A7] px-4 py-2 rounded-md  break-words text-sm w-fit max-w-full">
+        <div className="bg-[#e1dbd6] dark:bg-[#262626] border border-[#4071A7] px-4 py-2 pb-5 relative rounded-md  break-words text-sm w-fit max-w-full">
           <ReactMarkdown
   remarkPlugins={[remarkGfm]}
   rehypePlugins={[rehypeRaw]}
@@ -505,7 +561,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
     pre(props) {
       return (
         <pre
-          className="whitespace-pre-wrap break-words break-all text-sm bg-[#1e1e1e] text-white p-4 rounded-md overflow-auto max-w-full"
+          className="whitespace-pre-wrap break-words break-all text-sm bg-[#1e1e1e] text-black dark:text-white p-4 rounded-md overflow-auto max-w-full"
           {...props}
         />
       );
@@ -545,12 +601,47 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
 >
   {msg.text}
 </ReactMarkdown>
+<span className='absolute bottom-1 right-2 text-[10px] text-gray-300'>{msg.time}</span>
         </div>
       </>
     )}
   </div>
 ))}
+{isRefinerTyping && (
+  <div className="text-sm gap-1 flex flex-row text-[#FFD5D5]">
+    <img className='h-3.5 w-3 mt-0.5 mr-0.5' src="/agent.svg" />
+     Refinement Agent
+     {/* <span className='ml-1 text-xs mt-1 text-white'>{getCurrentTime()}</span> */} 
+   <div className="flex items-center gap-1 text-gray-300 italic text-sm">
+  typing
+  <span className="flex gap-1">
+    <span className="animate-bounce">.</span>
+    <span className="animate-bounce [animation-delay:0.15s]">.</span>
+    <span className="animate-bounce [animation-delay:0.3s]">.</span>
+  </span>
+</div>
 
+  </div>
+)}
+
+{isDevopsTyping && (
+  <div className="text-sm flex items-center text-[#BEDAFF]">
+    <img className="h-3.5 w-3 mt-0.5 mr-1" src="/expert.svg" />
+    DevOps Expert
+
+    
+    {/* <span className="ml-2 text-xs text-gray-300">{getCurrentTime()}</span> */}
+
+    <div className="ml-1 flex items-center gap-1 text-gray-300 italic text-sm">
+      typing
+      <span className="flex gap-1">
+        <span className="animate-bounce">.</span>
+        <span className="animate-bounce [animation-delay:0.15s]">.</span>
+        <span className="animate-bounce [animation-delay:0.3s]">.</span>
+      </span>
+    </div>
+  </div>
+)}
 
                        <div ref={messagesEndRef} />
                     
@@ -562,7 +653,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
            
                 
               </div>
-                <div className="relative mt-8 w-full">
+                <div className="relative w-full">
                   <Input
                     className="h-12 bg-[#ececec] dark:bg-[#1a1a1a] border border-gray-700  text-black dark:text-white text-sm pr-12"
                     placeholder="Enter your custom instruction here..."
@@ -589,7 +680,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
                   </button>
 
            
-                  <div className="flex  mt-1 justify-between items-center">
+                  <div className="flex  mt-2 justify-between items-center">
   {/* Left side: Keep original Pipeline */}
   <div>
     <Button
@@ -701,7 +792,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
                     <img src="/purplearrow.svg"/>
                   </button>
                   <p className='text-sm p-1'>Below are some example for change request instructions:</p>
-                  <p className='text-sm p-1  ml-2 text-white'>
+                  <p className='text-sm p-1  ml-2 text-black dark:text-white'>
                     1. Clearly describe what change you want to make to the pipeline.<br/>
                     2. Explain the reason or goal behind your requested change.<br/>
                     3. Mention any specific steps, files, or parts of the pipeline affected by this change.</p>
@@ -714,7 +805,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
       
       {showModal && (
       <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-transparent bg-black/60">
-        <div className="bg-[#1a1a1a] text-white p-6 rounded-xl shadow-xl w-[90%] max-w-md text-center">
+        <div className="bg-[#1a1a1a] text-black dark:text-white p-6 rounded-xl shadow-xl w-[90%] max-w-md text-center">
            <p className="text-white text-lg mt-9">
               Do you want to replace the pipeline Code with original?
             </p>
@@ -743,7 +834,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
       )}
 
       {showSuccess && (
-        <div className=" fixed bottom-4 flex flex-row text-white px-4 py-2 rounded-lg shadow-lg z-50">
+        <div className=" fixed bottom-4 ml-5 mt-[-5px] flex flex-row text-black dark:text-white px-4 py-2 rounded-lg shadow-lg z-50">
           <span >
           <svg xmlns="http://www.w3.org/2000/svg" width="30.266" height="20" viewBox="0 0 30.266 30.266">
                 <g id="check-circle-fill" transform="translate(0 0)">
@@ -759,7 +850,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
 
     
       {showChat && isMinimized && (
-  <div className="fixed bottom-21 right-15 bg-[#f9f9f9] dark:bg-[#0B0B0B] text-black dark:text-white border border-gray-600 rounded-md shadow-lg px-2 py-2 flex items-center justify-between w-75 z-50">
+  <div className="fixed bottom-21 right-15 bg-[#E7E7E7] dark:bg-[#0B0B0B] text-black dark:text-white border border-gray-600 rounded-md shadow-lg px-2 py-2 flex items-center justify-between w-75 z-50">
     <div className="flex items-center gap-2">
       <MessageSquareMore className="w-4 h-4" />
       <span className="text-sm">Chat </span>
@@ -780,7 +871,7 @@ className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white" />
           setIsSidebarOpen(true);
           setIsMinimized(false);
         }}
-        className="w-4 h-4 cursor-pointer text-gray-300 hover:text-white"
+        className="w-4 h-4 cursor-pointer text-black dark:text-white"
       />
     </div>
   </div>

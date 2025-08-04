@@ -22,16 +22,18 @@ import { useNavigate } from 'react-router-dom';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 
+
 const GITHUB_KEY = "recentGithubUrls";
 type Props = {
   goToStep: (step: number) => void;
   responseText: string;
   setResponseText: (text: string) => void;
   setPipelineData: (data: string) => void; // ✅ Add this line
+  setCurrentPipeline: (value: string) => void;
 };
 
 
-export function PipelineExtractor({ goToStep, responseText, setResponseText, setPipelineData }: Props): JSX.Element {
+export function PipelineExtractor({ goToStep, responseText, setResponseText, setPipelineData, setCurrentPipeline }: Props): JSX.Element {
 
   const handleProceed = () => {
     goToStep(2); 
@@ -279,7 +281,7 @@ const handleSubmit = () => {
   </div>
 )}
 
-        <div className="flex flex-col bg-[#ffffff] dark:bg-[#1a1a1a] p-2 h-30 rounded-md border border-gray-700">
+        <div className="flex flex-col bg-[#f9f9f9] dark:bg-[#1a1a1a] p-2 h-30 rounded-md border border-gray-700">
           <div className="flex flex-wrap md:flex-nowrap gap-4 mt-1 ml-5">
 
             {/* Technology */}
@@ -331,7 +333,7 @@ const handleSubmit = () => {
               <label className="text-[13px] text-black dark:text-white">OS<span className="text-red-500">*</span></label>
                </div>
               <Select onValueChange={setOS}>
-                <SelectTrigger  className=" bg-white dark:bg-black w-full md:w-60 bg-white dark:bg-black border border-gray-600 text-black dark:text-white"
+                <SelectTrigger  className=" bg-white dark:bg-black w-full md:w-60 border border-gray-600 text-black dark:text-white"
 >
                   <SelectValue className='text-xs' placeholder="Select the OS" />
                 </SelectTrigger>
@@ -384,7 +386,7 @@ const handleSubmit = () => {
         >
           {/* URL button */}
           <div
-            className="flex-grow text-black dark:text-white hover:bg-[#2E2C2C] cursor-pointer truncate text-sm text-left"
+            className="flex-grow text-black dark:text-white hover:bg-[#ececec] dark:hover:bg-[#2E2C2C] cursor-pointer truncate text-sm text-left"
             onMouseDown={(e) => {
               e.preventDefault(); // prevent blur
               handleSelectUrl(url);
@@ -429,7 +431,7 @@ const handleSubmit = () => {
           </div>
         </div>
         
-        <div className="flex flex-col h-[19rem] mt-2 bg-[#f9f9f9] dark:bg-[#1f1f1f]  rounded-lg border border-gray-700">
+        <div className="flex flex-col h-[21.5rem] mt-2 bg-[#f9f9f9] dark:bg-[#1f1f1f]  rounded-lg border border-gray-700">
           {isSidebarOpen &&
          <p className={`text-[14px] ml-2 mt-2 p-1 cursor-default 
                 ${responseText.length>0 ? 'text-black dark:text-white' : 'text-gray-500'}`}>Extract Details</p>}
@@ -455,7 +457,7 @@ const handleSubmit = () => {
                 )}
             {showCard && (
               <ScrollArea>
-              <div className="flex h-72 bg-white dark:bg-[#1a1a1a] text-black dark:text-white rounded-md border border-gray-700 w-full overflow-y-auto">
+              <div className="flex h-85 bg-[#f9f9f9] dark:bg-[#1a1a1a] text-black dark:text-white rounded-md border border-gray-700 w-full overflow-y-auto">
 
               <div className="flex-1 p-2 space-y-4 overflow-y-auto">
                 {/* Header */}
@@ -581,7 +583,7 @@ const handleSubmit = () => {
            {!showCard && (
               <>
                 {isSidebarOpen && (
-                  <div className="h-[16rem] bg-[black] rounded-md text-[14px] cursor-default overflow-y-auto w-full p-3 space-y-2">
+                  <div className="h-[17rem] bg-[black] rounded-md text-[14px] cursor-default overflow-y-auto w-full p-3 space-y-2">
                     
           <ReactMarkdown
   remarkPlugins={[remarkGfm]}
@@ -723,7 +725,7 @@ h3({ children }) {
             // onClick={handleGenerate}
              onClick={() => handleGenerate(customInstruction)}
 
-            className="px-4  mt-3 py-2 h-8 border border-black bg-white text-black dark:text-black rounded-md"
+            className="px-4  mr-[-15px] mt-0.5 py-2 h-8 border border-black bg-black dark:bg-white text-white dark:text-black rounded-md"
           >
             Generate
           </Button>

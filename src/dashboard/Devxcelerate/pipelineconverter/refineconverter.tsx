@@ -12,16 +12,19 @@ import rehypeRaw from 'rehype-raw';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { HTMLAttributes } from 'react';
+import ConverterPipelineChat from './converterpipelinechat';
 // refine.tsx
 //in props added null
 type Props = {
   pipelineData: string; // ✅ allow null
   setFinalPipeline: (value: string) => void;
   goToStep: (step: number) => void;
+   currentPipeline: string;
+  setCurrentPipeline: (value: string) => void;
 };
 
 
-export default function ConverterPipelineRefiner({ goToStep, pipelineData,setFinalPipeline }: Props): JSX.Element {
+export default function ConverterPipelineRefiner({ goToStep, pipelineData, currentPipeline, setFinalPipeline, setCurrentPipeline }: Props): JSX.Element {
 
 const [isLoading, setIsLoading] = useState(false);
 
@@ -44,7 +47,15 @@ const handleProceed = () => {
     }, [successMessage]);
   const [showChat, setShowChat] = useState(false);  
   const [isSidebarOpen, setIsSidebarOpen] = useState(true) 
-const [currentPipeline, setCurrentPipeline] = useState<string>(pipelineData ?? '');
+// const [currentPipeline, setCurrentPipeline] = useState<string>(pipelineData ?? '');
+const displayPipeline = currentPipeline || pipelineData || '';
+const cleanedPipeline = displayPipeline
+  .replace(/^```(?:\w+)?\n/, '') // remove starting ```
+  .replace(/```$/, '')           // remove ending ```
+  .trim();
+
+// const displayPipeline = (currentPipeline || pipelineData || '').replace(/^```.*?\n/, '').replace(/```$/, '');
+
 const detectedLang = currentPipeline.includes("pipeline {") ? "groovy" : "yaml";
 
 const handleRequestChange = async (userInput: string) => {
@@ -64,6 +75,12 @@ const handleRequestChange = async (userInput: string) => {
     });
 
     const data = await response.json();
+  //   const rawOutput = data.output || '';
+
+  //   const cleanedPipeline = rawOutput
+  // .replace(/^```.*?\n/, "") // remove ```lang
+  // .replace(/```$/, "");     // remove ending ```
+
 
     if (data.output) {
       setCurrentPipeline(data.output);
@@ -86,7 +103,7 @@ return (
 
     {/* LEFT SIDEBAR */}
     {isSidebarOpen && (
-    <div className="bg-[#f9f9f9] dark:bg-[#171717] p-3 w-full rounded-lg shadow-md text-black dark:text-white text-[14px] space-y-4 h-[26.5rem]">
+    <div className="bg-[#f9f9f9] dark:bg-[#171717] p-3 w-full rounded-lg shadow-md text-black dark:text-white text-[14px] space-y-4 h-[29rem]">
   <p>Draft Pipeline Code</p>
 
  {/* <div className="bg-[#f5f5f5] h-91 overflow-y-auto dark:bg-[#1f1f1f] p-2 rounded-md border border-gray-700 flex flex-col">
@@ -143,11 +160,12 @@ return (
     </span>
   </div>
 </div> */}
-<div className="bg-[#f5f5f5] h-91 overflow-hidden dark:bg-[#1f1f1f] rounded-md border border-gray-700 flex flex-col">
+<div className="bg-[#f5f5f5] h-100 overflow-hidden dark:bg-[#1f1f1f] rounded-md border border-gray-700 flex flex-col">
 
   {/* Scrollable Markdown content */}
   <div className="flex-grow overflow-y-auto p-2.5">
-    {pipelineData && currentPipeline && (
+    
+    {cleanedPipeline  &&(
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw]}
@@ -175,7 +193,7 @@ return (
           },
         }}
       >
-        {`\`\`\`${detectedLang}\n${currentPipeline}\n\`\`\``}
+        {`\`\`\`${detectedLang}\n${cleanedPipeline}\n\`\`\``}
       </ReactMarkdown>
     )}
   </div>
@@ -202,7 +220,7 @@ return (
     ) }
 {!isSidebarOpen && (
   <div
-    className="w-8 h-[26rem] rounded-md bg-[#f9f9f9] dark:bg-[#1F1F1F] text-sm border border-gray-700 flex items-center justify-center cursor-pointer"
+    className="w-8 h-[29rem] rounded-md bg-[#f9f9f9] dark:bg-[#1F1F1F] text-sm border border-gray-700 flex items-center justify-center cursor-pointer"
     onClick={() => {
       setShowChat(false);
       setIsSidebarOpen(true);
@@ -218,7 +236,7 @@ return (
     <div className="flex-1 w-full" >
       
       {showChat && 
-  <PipelineChat
+  <ConverterPipelineChat
   goToStep={goToStep}
   setIsSidebarOpen={setIsSidebarOpen}
   setShowChat={setShowChat}
@@ -252,7 +270,7 @@ return (
     <Button onClick={handleBack} className="px-4 py-2 h-8 bg-[#2B2B2B] text-white rounded-md  w-24">
       Back
     </Button>
-    <Button onClick={handleProceed} className="px-4 py-2 h-8 bg-white text-black rounded-md  w-24">
+    <Button onClick={handleProceed} className="px-4 py-2 h-8 bg-black dark:bg-white text-white dark:text-black rounded-md  w-24">
       Confirm
     </Button>
   </div>

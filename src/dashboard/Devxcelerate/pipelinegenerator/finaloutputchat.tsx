@@ -239,11 +239,12 @@ const handleSubmit = async () => {
 const [selectedSuggestion, setSelectedSuggestion] = useState("Select the Suggestions");
 const [isMinimized, setIsMinimized] = useState(false);
 
+
   return (
     <>
       {showChat && !isMinimized && (
         <>
-          <div className="w-full h-[26.5rem] bg-[#E7E7E7] dark:bg-[#0B0B0B] border border-black rounded-md text-black dark:text-white flex flex-col shadow-xl">
+          <div className="w-full h-[29rem] bg-[#E7E7E7] dark:bg-[#0B0B0B] border border-black rounded-md text-black dark:text-white flex flex-col shadow-xl">
           {/* <div className="h-full flex flex-col bg-[#0B0B0B] border rounded-md text-white shadow-xl"> */}
 
             <div className="flex items-center justify-between text-black dark:text-white px-4 py-2 border-b border-black dark:border-gray-700 bg-[#E7E7E7] dark:bg-[#0B0B0B] rounded-t-md">
@@ -337,70 +338,9 @@ const [isMinimized, setIsMinimized] = useState(false);
  
 </div>
                 
-                <div className="flex flex-col px-4 py-2 h-58 space-y-2 overflow-y-auto">
+                <div className="flex flex-col px-1 py-2 h-75 space-y-2 overflow-y-auto">
+                  
                   {/* {chatMessages.map((msg, index) => (
-                    <div key={index}>
-                      <div className="text-sm flex  items-center text-left">
-                        <img className='h-3.5 w-4'src={msg.sender === 'user' ? '/user.svg' : '/expert.svg'} />
-                        <p className={msg.sender === 'user' ? 'text-[#86CB81]' : 'text-[#BEDAFF]'}>
-                          {msg.sender === 'user' ? 'User' : 'Assistant'}
-                        </p>
-                        <p className="ml-2 text-[#767676]">{msg.time}</p>
-                      </div>
-                      <div className={`bg-[#fefefe] dark:bg-[#262626] border ${msg.sender === 'user' ? 'border-[#86CB81]' : 'border-[#BEDAFF]'} text-sm px-4 py-2 rounded-md w-fit max-w-[80%]`}>
-                      
-                             <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          rehypePlugins={[rehypeRaw]}
-                          components={{
-                            pre(props) {
-                              return (
-                                <pre
-                                  className="whitespace-pre-wrap break-words break-all text-sm bg-[#1e1e1e] text-white p-4 rounded-md overflow-auto max-w-full"
-                                  {...props}
-                                />
-                              );
-                            },
-                            code({
-                              inline,
-                              className,
-                              children,
-                              ...props
-                            }: {
-                              inline?: boolean;
-                              className?: string;
-                              children?: React.ReactNode;
-                            } & HTMLAttributes<HTMLElement>) {
-                              const match = /language-(\w+)/.exec(className || '');
-                              return !inline && match ? (
-                                <SyntaxHighlighter
-                                  style={oneDark}
-                                  language={match[1]}
-                                  PreTag="div"
-                                  {...props}
-                                >
-                                  {String(children).replace(/\n$/, '')}
-                                </SyntaxHighlighter>
-                              ) : (
-                                <code
-                                  className={`${
-                                    inline ? 'bg-gray-800 px-1 py-0.5 rounded' : ''
-                                  } whitespace-pre-wrap break-words break-all`}
-                                  {...props}
-                                >
-                                  {children}
-                                </code>
-                              );
-                            },
-                          }}
-                        >
-                          {msg.text}
-                        </ReactMarkdown>
-                        
-                      </div>
-                    </div>
-                  ))} */}
-                  {chatMessages.map((msg, index) => (
   <div key={index}>
     <div className="text-sm flex items-center text-left mb-1">
       <img
@@ -439,6 +379,7 @@ const [isMinimized, setIsMinimized] = useState(false);
     <span className="animate-bounce">.</span>
     <span className="animate-bounce delay-150">.</span>
     <span className="animate-bounce delay-300">.</span>
+   
   </span>
 </div>
 
@@ -500,7 +441,109 @@ const [isMinimized, setIsMinimized] = useState(false);
       </div>
     )}
   </div>
+))} */}
+{chatMessages.map((msg, index) => (
+  <div key={index}>
+    {/* Header: Avatar and Sender Name */}
+    <div className="text-sm flex items-center text-left mb-1">
+      <img
+        className="h-3 w-4"
+        src={
+          msg.sender === 'user'
+            ? '/user.svg'
+            : '/expert.svg' // assistant and loading both use expert.svg
+        }
+      />
+      <p
+        className={
+          msg.sender === 'user'
+            ? 'text-[#86CB81]'
+            : 'text-[#BEDAFF]'
+        }
+      >
+        {msg.sender === 'user' ? 'User' : 'Assistant'}
+      </p>
+
+      {/* Typing Indicator */}
+      {msg.sender === 'loading' && (
+        <div className="ml-2 text-sm italic flex items-center">
+          typing
+          <span className="flex gap-1 ml-1">
+            <span className="animate-bounce">.</span>
+            <span className="animate-bounce [animation-delay:0.15s]">.</span>
+            <span className="animate-bounce [animation-delay:0.3s]">.</span>
+          </span>
+        </div>
+      )}
+    </div>
+
+    {/* Message Bubble */}
+    {msg.sender !== 'loading' && (
+      <div
+        className={`relative mt-1 bg-[#fefefe] dark:bg-[#262626] border ${
+          msg.sender === 'user'
+            ? 'border-[#86CB81]'
+            : 'border-[#BEDAFF]'
+        } text-sm px-2 py-2 pb-5 rounded-md w-fit max-w-[80%]`}
+      >
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={[rehypeRaw]}
+          components={{
+            pre(props) {
+              return (
+                <pre
+                  className="whitespace-pre-wrap break-words break-all text-sm bg-[#1e1e1e] text-white p-2 rounded-md overflow-auto max-w-full"
+                  {...props}
+                />
+              );
+            },
+            code({
+              inline,
+              className,
+              children,
+              ...props
+            }: {
+              inline?: boolean;
+              className?: string;
+              children?: React.ReactNode;
+            } & HTMLAttributes<HTMLElement>) {
+              const match = /language-(\w+)/.exec(className || '');
+              return !inline && match ? (
+                <SyntaxHighlighter
+                  style={oneDark}
+                  language={match[1]}
+                  PreTag="div"
+                  {...props}
+                >
+                  {String(children).replace(/\n$/, '')}
+                </SyntaxHighlighter>
+              ) : (
+                <code
+                  className={`${
+                    inline ? 'bg-gray-800 px-1 py-0.5 rounded' : ''
+                  } whitespace-pre-wrap break-words break-all`}
+                  {...props}
+                >
+                  {children}
+                </code>
+              );
+            },
+          }}
+        >
+          {msg.text}
+        </ReactMarkdown>
+
+        {/* Time inside message bubble */}
+        <span className="absolute bottom-1 right-2 text-[10px] text-gray-300">
+          {msg.time}
+        </span>
+      </div>
+    )}
+  </div>
 ))}
+
+
 
                   <div ref={messagesEndRef} />
                 </div>

@@ -76,6 +76,10 @@ const handleDownload = () => {
 };
 
 const detectedLang = finalPipeline.includes("pipeline {") ? "groovy" : "yaml";
+const cleanedPipeline = finalPipeline
+  .replace(/^```(?:\w+)?\n/, '') // remove starting ```
+  .replace(/```$/, '')           // remove ending ```
+  .trim();
 
 
   return (
@@ -83,43 +87,43 @@ const detectedLang = finalPipeline.includes("pipeline {") ? "groovy" : "yaml";
       <div className="flex flex-row space-x-2 mt-2">
         {/* LEFT SIDEBAR */}
         {isSidebarOpen && (
-          <div className="bg-[#f9f9f9] dark:bg-[#171717] p-3 w-full rounded-lg shadow-md text-black dark:text-white text-[14px] space-y-4 h-[26.5rem] ">
+          <div className="bg-[#f9f9f9] dark:bg-[#171717] p-3 w-full rounded-lg shadow-md text-black dark:text-white text-[14px] space-y-4 h-[29rem] ">
             <p>Final Output</p>
 
-            <div className="h-[22rem] rounded-md border border-gray-700 flex flex-col relative">
+            <div className="h-[25.5rem] rounded-md border border-gray-700 flex flex-col relative">
               <pre className="bg-[#f5f5f5] dark:bg-[#1f1f1f] text-black dark:text-white p-2 overflow-y-auto rounded-md text-sm whitespace-pre-wrap flex-grow">
                 {/* {finalPipeline} */}
-            {finalPipeline && (
-  <ReactMarkdown
-    remarkPlugins={[remarkGfm]}
-    rehypePlugins={[rehypeRaw]}
-    components={{
-      code(props) {
-        const { className, children } = props;
-        const lang = className?.match(/language-(\w+)/)?.[1] || detectedLang ;
+ {cleanedPipeline  &&(
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeRaw]}
+        components={{
+          code(props) {
+            const { className, children } = props;
+            const match = /language-(\w+)/.exec(className || '');
+            const lang = match ? match[1] : detectedLang;
 
-        return (
-          <SyntaxHighlighter
-            language={lang}
-            style={vscDarkPlus}
-            PreTag="div"
-            customStyle={{
-              borderRadius: '10px',
-              fontSize: '0.95rem',
-              backgroundColor: '#1f1f1f',
-              color: 'white',
-            }}
-          >
-            {String(children).replace(/\n$/, '')}
-          </SyntaxHighlighter>
-        );
-      },
-    }}
-  >
-    {`\`\`\`${detectedLang }\n${finalPipeline ?? ''}\n\`\`\``}
-  </ReactMarkdown>
-)}
-
+            return (
+              <SyntaxHighlighter
+                language={lang}
+                style={vscDarkPlus}
+                PreTag="div"
+                customStyle={{
+                  borderRadius: '10px',
+                  fontSize: '0.95rem',
+                  backgroundColor: '#1f1f1f',
+                  color: 'white',
+                }}
+              >
+                {String(children).replace(/\n$/, '')}
+              </SyntaxHighlighter>
+            );
+          },
+        }}
+      >
+        {`\`\`\`${detectedLang}\n${cleanedPipeline}\n\`\`\``}
+      </ReactMarkdown>
+    )}
 
               </pre> 
  
@@ -155,7 +159,7 @@ const detectedLang = finalPipeline.includes("pipeline {") ? "groovy" : "yaml";
   
         {!isSidebarOpen && (
   <div
-    className="w-8 h-[26.5rem] rounded-md bg-[#f9f9f9] dark:bg-[#1F1F1F] text-sm border border-gray-700 flex items-center justify-center cursor-pointer"
+    className="w-8 h-[29rem] rounded-md bg-[#f9f9f9] dark:bg-[#1F1F1F] text-sm border border-gray-700 flex items-center justify-center cursor-pointer"
     onClick={() => {
       setShowChat(false);
       setIsSidebarOpen(true);
