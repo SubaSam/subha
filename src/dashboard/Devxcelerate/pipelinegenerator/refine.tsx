@@ -2,26 +2,29 @@
 
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, type JSX } from 'react';
-import PipelineChat from'./pipelinechat';
+import { useNavigate } from 'react-router-dom';
+import PipelineChat from './pipelinechat';
 import { vscDarkPlus  } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { atomOneDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import type { HTMLAttributes } from 'react';
 // refine.tsx
 //in props added null
 type Props = {
   pipelineData: string; // ✅ allow null
   setFinalPipeline: (value: string) => void;
   goToStep: (step: number) => void;
-   currentPipeline: string;
+  currentPipeline: string;
   setCurrentPipeline: (value: string) => void;
 };
 
 
-export default function PipelineRefiner({ goToStep, pipelineData, currentPipeline, setFinalPipeline, setCurrentPipeline }: Props): JSX.Element {
-
+export default function PipelineRefiner({ goToStep, pipelineData,setFinalPipeline, currentPipeline, setCurrentPipeline }: Props): JSX.Element {
+console.log("currentPipeline", currentPipeline);
 const [isLoading, setIsLoading] = useState(false);
 
 const handleProceed = () => {
@@ -43,19 +46,17 @@ const handleProceed = () => {
     }, [successMessage]);
   const [showChat, setShowChat] = useState(false);  
   const [isSidebarOpen, setIsSidebarOpen] = useState(true) 
-// const [currentPipeline, setCurrentPipeline] = useState<string>(pipelineData ?? '');
+// const [currentPipeline, setCurrentPipeline] = useState<string>(() => {
+//   return localStorage.getItem("saved_pipeline_code") || pipelineData || '';
+// });
+// useEffect(() => {
+//   localStorage.setItem("saved_pipeline_code", currentPipeline);
+// }, [currentPipeline]);
 const displayPipeline = currentPipeline || pipelineData || '';
-const cleanedPipeline = displayPipeline
-  .replace(/^```(?:\w+)?\n/, '') // remove starting ```
-  .replace(/```$/, '')           // remove ending ```
-  .trim();
-
-// const displayPipeline = (currentPipeline || pipelineData || '').replace(/^```.*?\n/, '').replace(/```$/, '');
-
-const detectedLang = cleanedPipeline.includes("pipeline {") ? "groovy" : "yaml";
+const detectedLang = currentPipeline.includes("pipeline {") ? "groovy" : "yaml";
 
 const handleRequestChange = async (userInput: string) => {
-  if (!cleanedPipeline) return;
+  if (!displayPipeline) return;
 
   setIsLoading(true);
   try {
@@ -65,18 +66,12 @@ const handleRequestChange = async (userInput: string) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        code: currentPipeline,
+        code: displayPipeline,
         user_input: userInput,  // 🔥 use passed-in input here
       }),
     });
 
     const data = await response.json();
-  //   const rawOutput = data.output || '';
-
-  //   const cleanedPipeline = rawOutput
-  // .replace(/^```.*?\n/, "") // remove ```lang
-  // .replace(/```$/, "");     // remove ending ```
-
 
     if (data.output) {
       setCurrentPipeline(data.output);
@@ -91,6 +86,9 @@ const handleRequestChange = async (userInput: string) => {
     setIsLoading(false);
   }
 };
+//  const cleanedCode = displayPipeline
+//   .replace(/^```[\s\S]*?\n/, '') // Remove opening ```lang
+//   .replace(/```$/, ''); // Remove closing ```
 
   
 return (
@@ -102,66 +100,13 @@ return (
     <div className="bg-[#f9f9f9] dark:bg-[#171717] p-3 w-full rounded-lg shadow-md text-black dark:text-white text-[14px] space-y-4 h-[29rem]">
   <p>Draft Pipeline Code</p>
 
- {/* <div className="bg-[#f5f5f5] h-91 overflow-y-auto dark:bg-[#1f1f1f] p-2 rounded-md border border-gray-700 flex flex-col">
-      {pipelineData && (
-    currentPipeline && (
-      
-<ReactMarkdown
-  remarkPlugins={[remarkGfm]}
-  rehypePlugins={[rehypeRaw]}
-  components={{
-    code(props) {
-      const { className, children, node } = props;
-      const match = /language-(\w+)/.exec(className || '');
-      const lang = match ? match[1] : detectedLang;
 
-      return (
-        <SyntaxHighlighter
-          language={lang}
-          style={vscDarkPlus }
-          PreTag="div"
-          customStyle={{
-            borderRadius: '10px',
-            fontSize: '0.95rem',
-            backgroundColor: '#1f1f1f',
-            color: 'white',
-          }}
-        >
-          {String(children).replace(/\n$/, '')}
-        </SyntaxHighlighter>
-      );
-    },
-  }}
->
-  {`\`\`\`${detectedLang}\n${currentPipeline}\n\`\`\``}
-</ReactMarkdown>
-
-
-    ))
-  }
-
-
-   <div className="bg-[#fafafa] dark:bg-[#171717] h-[3rem] p-1 rounded-md flex items-center gap-2 text-black dark:text-white mt-auto px-4">
-    <span className="text-sm italic">
-      Would you like to Refine the generated Code or request for change?
-    </span>
-    <span
-      onClick={() => {
-        setShowChat(true);
-        setIsSidebarOpen(false);
-      }}
-      className="text-white dark:text-black px-3 py-1 bg-[#171717] dark:bg-white rounded-lg cursor-pointer"
-    >
-      Yes
-    </span>
-  </div>
-</div> */}
 <div className="bg-[#f5f5f5] h-100 overflow-hidden dark:bg-[#1f1f1f] rounded-md border border-gray-700 flex flex-col">
 
   {/* Scrollable Markdown content */}
   <div className="flex-grow overflow-y-auto p-2.5">
-    
-    {cleanedPipeline  &&(
+    {/* {pipelineData && currentPipeline && ( */}
+    {displayPipeline && (
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw]}
@@ -189,7 +134,7 @@ return (
           },
         }}
       >
-        {`\`\`\`${detectedLang}\n${cleanedPipeline}\n\`\`\``}
+        {`\`\`\`${detectedLang}\n${displayPipeline}\n\`\`\``}
       </ReactMarkdown>
     )}
   </div>
@@ -256,7 +201,7 @@ return (
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 30.266 30.266">
           <path d="M30.266,15.133A15.133,15.133,0,1,1,15.133,0,15.133,15.133,0,0,1,30.266,15.133ZM22.756,9.4a1.419,1.419,0,0,0-2.043.042l-6.57,8.37-3.959-3.961a1.419,1.419,0,0,0-2.005,2.005l5.005,5.007a1.419,1.419,0,0,0,2.041-.038l7.551-9.439A1.419,1.419,0,0,0,22.758,9.4Z" fill="#24d304"/>
         </svg>
-        <span className="text-white">{successMessage}</span>
+        <span className="text-black dark:text-white">{successMessage}</span>
       </>
     )}
   </div>
@@ -266,7 +211,7 @@ return (
     <Button onClick={handleBack} className="px-4 py-2 h-8 bg-[#2B2B2B] text-white rounded-md  w-24">
       Back
     </Button>
-    <Button onClick={handleProceed} className="px-4 py-2 h-8 bg-black dark:bg-white text-white dark:text-black rounded-md  w-24">
+    <Button onClick={handleProceed} className="px-4 py-2 h-8 border border-black bg-white text-black rounded-md  w-24">
       Confirm
     </Button>
   </div>

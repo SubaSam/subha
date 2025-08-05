@@ -126,6 +126,7 @@ const handleConvert = async () => {
     }
   } catch (error) {
     console.error("❌ Error converting pipeline:", error);
+  
   } finally {
     setIsGenerating(false);
   }
@@ -238,11 +239,13 @@ useEffect(() => {
 
 
 const detectedLang = responseText.includes("pipeline {") ? "groovy" : "yaml";
-const cleanedPipeline = responseText
-  .replace(/^```(?:\w+)?\n/, '') // remove starting ```
-  .replace(/```$/, '')           // remove ending ```
-  .trim();
-
+// const cleanedPipeline = responseText
+//   .replace(/^```(?:\w+)?\n/, '') // remove starting ```
+//   .replace(/```$/, '')           // remove ending ```
+//   .trim();
+const cleanedCode = responseText
+  .replace(/^```[\s\S]*?\n/, '') // Remove opening ```lang
+  .replace(/```$/, ''); // Remove closing ```
 
   return (
         <>
@@ -385,7 +388,7 @@ const cleanedPipeline = responseText
          <p className={`text-[14px] ml-2 mt-2  cursor-default 
                 ${responseText.length>0 ? 'text-black dark:text-white' : 'text-gray-500'}`}>File Preview</p>}
         
-                  {responseText && (
+                  {cleanedCode && (
   <div className="p-1 overflow-y-auto whitespace-pre-wrap text-sm">
      <ReactMarkdown
             remarkPlugins={[remarkGfm]}
@@ -414,7 +417,7 @@ const cleanedPipeline = responseText
               },
             }}
           >
-            {`\`\`\`${detectedLang}\n${responseText}\n\`\`\``}
+            {`\`\`\`${detectedLang}\n${cleanedCode}\n\`\`\``}
           </ReactMarkdown>
   </div>
 )}

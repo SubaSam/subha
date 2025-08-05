@@ -77,9 +77,8 @@ const handleDownload = () => {
 
 const detectedLang = finalPipeline.includes("pipeline {") ? "groovy" : "yaml";
 const cleanedPipeline = finalPipeline
-  .replace(/^```(?:\w+)?\n/, '') // remove starting ```
-  .replace(/```$/, '')           // remove ending ```
-  .trim();
+  .replace(/^```[\s\S]*?\n/, '') // Remove opening ```lang
+  .replace(/```$/, ''); 
 
 
   return (
