@@ -175,18 +175,34 @@ const [file, setFile] = useState<File | null>(null);
   const formatSize = (bytes: number) => {
     return `${(bytes / 1024).toFixed(1)}Kb`;
   };
-  const handleFileUpload = async () => {
-    if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const content = e.target?.result as string;
-      setFileContent(content);
-      setResponseText(content);
-      localStorage.setItem('responseText', content);
-    };
-    reader.readAsText(file);
+  const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const uploadedFile = e.target.files?.[0];
+  if (uploadedFile) {
+    setFile(uploadedFile); // Triggers useEffect
+  }
+};
+
+
+const handleFileUpload = () => {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const content = e.target?.result as string;
+    setFileContent(content);
+    setResponseText(content);
+    localStorage.setItem('responseText', content);
   };
+  reader.readAsText(file);
+};
+
+useEffect(() => {
+  if (file) {
+    handleFileUpload();
+  }
+}, [file]);
+
+
 
 const [extractedData, setExtractedData] = useState('');
 
@@ -220,10 +236,7 @@ useEffect(() => {
   }
 }, [responseText]);
 
-const handleSubmit = () => {
-  if (!customInstruction.trim()) return;
-  setCustomInstruction(""); // clear input after submit
-};
+
 const detectedLang = responseText.includes("pipeline {") ? "groovy" : "yaml";
 const cleanedPipeline = responseText
   .replace(/^```(?:\w+)?\n/, '') // remove starting ```
@@ -331,8 +344,8 @@ const cleanedPipeline = responseText
       <div
         className="border border-dashed border-gray-500  h-10 bg-[#ececec] dark:bg-[#2e2d2d] rounded-md p-0.5 flex flex-col items-center  flex j-center cursor-pointer relative"
         onClick={() => fileInputRef.current?.click()}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
+  onDrop={handleDrop}
+  onDragOver={handleDragOver}
       >
         {/* <UploadCloud className="w-8 h-8 text-gray-400 mb-2" /> */}
        <div className="flex items-center space-x-2">
