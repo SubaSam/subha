@@ -293,7 +293,7 @@ const pathname = location.pathname.toLowerCase();
     "VelocityLens",
     "DevXcelerateGenerator",
     "DevXcelerateConverter",
-    "SubSection3",
+    "DevXcelerateRefiner",
     "TestSage",
     "Settings",
   ];
@@ -382,9 +382,10 @@ const dynamicwidth = sidebarCollapsed ? 'w-[95.5vw]' : 'w-[80.1vw]';
   </p> */}
   <p className="text-md  text-black dark:text-white">
   {(() => {
-    if (activePage === "SubSection3") return "SubSection3";
+    if (activePage === "DevXcelerateRefiner") return "Pipeline Refiner";
     if (activePage === "DevXcelerateConverter") return "Pipeline Converter";
     if (activePage === "DevXcelerateGenerator") return "Pipeline Generator";
+     if (activePage === "CodeGenie") return "Code Genie";
     return activePage.replace(/([a-z])([A-Z])/g, "$1 $2");
   })()}
 </p>

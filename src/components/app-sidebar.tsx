@@ -110,7 +110,7 @@ const data = {
   children: [
     { title: "Pipeline Generator", id: "DevXcelerateGenerator" },
     { title: "Pipeline Converter", id: "DevXcelerateConverter" },
-    { title: "SubSection 3", id: "SubSection3" },
+    { title: "Pipeline Refiner", id: "DevXcelerateRefiner" },
   ]
 },
     {

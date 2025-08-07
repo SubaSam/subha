@@ -20,7 +20,7 @@ type Props = {
 
 
 export default function ConverterPipelineRefiner({ goToStep, pipelineData, currentPipeline, setFinalPipeline, setCurrentPipeline }: Props): JSX.Element {
-console.log('Current Pipeline:', currentPipeline);
+console.log('Currentconverter Pipeline:', currentPipeline);
 const [isLoading, setIsLoading] = useState(false);
 
 const handleProceed = () => {
@@ -43,47 +43,12 @@ const handleProceed = () => {
   const [showChat, setShowChat] = useState(false);  
   const [isSidebarOpen, setIsSidebarOpen] = useState(true) 
 const displayPipeline = currentPipeline || pipelineData || '';
- 
-console.log('Raw pipeline response:', displayPipeline);
+console.log("displaypipeline:", displayPipeline);
+ const detectedLang = currentPipeline.includes("pipeline {") ? "groovy" : "yaml"
 
-// const extractCodeBlock = (input: string): string => {
-//   try {
-//     const json = JSON.parse(input); // response from backend
-//     const raw = json.converted_code || '';
-
-//     const match = raw.match(/```(?:\w+)?\n([\s\S]*?)```/);
-//     return match ? match[1].trim() : '';
-//   } catch (err) {
-//     console.error('Failed to parse or extract:', err);
-//     return '';
-//   }
-// };
-const extractCodeBlock = (input: string): { lang: string; code: string } => {
-  try {
-    const json = JSON.parse(input); // your backend response
-    const rawCodeBlock = json.converted_code || '';
-
-    const match = rawCodeBlock.match(/```(\w+)?\n([\s\S]*?)```/);
-    if (!match) {
-      console.warn('No matching code block found');
-      return { lang: 'yaml', code: '' };
-    }
-
-    const lang = match[1] || 'yaml';
-    const code = match[2].trim();
-
-    return { lang, code };
-  } catch (err) {
-    console.error('Failed to parse or extract code:', err);
-    return { lang: 'yaml', code: '' };
-  }
-};
-const { lang, code } = extractCodeBlock(displayPipeline);
-
-// const detectedLang = 'groovy';
 const handleRequestChange = async (userInput: string) => {
  
-  if (!currentPipeline) return;
+  if (!displayPipeline) return;
 
   setIsLoading(true);
   try {
@@ -93,14 +58,18 @@ const handleRequestChange = async (userInput: string) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        code: currentPipeline,
+        code: displayPipeline,
         user_input: userInput,  // 🔥 use passed-in input here
       }),
     });
 
     const data = await response.json();
-    if (data.output) {
-      setCurrentPipeline(data.output);
+    const responseText = data.output
+    if (responseText) {
+    const match = responseText.match(/```[\s\S]*?\n([\s\S]*?)```/);
+    const cleanedCode = match ? match[1].trim() : '';
+
+      setCurrentPipeline(cleanedCode);
       setSuccessMessage("Code updated successfully!");
     } else {
       setSuccessMessage("No changes made.");
@@ -112,14 +81,15 @@ const handleRequestChange = async (userInput: string) => {
     setIsLoading(false);
   }
 };
-  const cleanedPipeline = extractCodeBlock(displayPipeline);
-  console.log('Extracted code block:', cleanedPipeline);
-  // const cleanedPipeline = displayPipeline?.trim();
-  // console.log('Raw pipeline response:', cleanedPipeline);
-
+  
 return (
 
   <div className='flex flex-col'>
+         {isLoading && (
+  <div className="fixed inset-0 backdrop-transparent bg-black/60 z-50 flex items-center justify-center">
+    <p className="text-white text-lg font-semibold animate-pulse">Loading...</p>
+  </div>
+)}
   <div className="flex flex-row space-x-2 mt-2 w-full">
 
     {/* LEFT SIDEBAR */}
@@ -132,38 +102,37 @@ return (
 
   {/* Scrollable Markdown content */}
   <div className="flex-grow overflow-y-auto p-2.5">
-  {code ? (
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          rehypePlugins={[rehypeRaw]}
-          components={{
-            code({ className, children }) {
-              const matchedLang = /language-(\w+)/.exec(className || '');
-              const finalLang = matchedLang ? matchedLang[1] : lang;
-
-              return (
-                <SyntaxHighlighter
-                  language={finalLang}
-                  style={vscDarkPlus}
-                  PreTag="div"
-                  customStyle={{
-                    borderRadius: '10px',
-                    fontSize: '0.95rem',
-                    backgroundColor: '#1f1f1f',
-                    color: 'white',
-                  }}
-                >
-                  {String(children).replace(/\n$/, '')}
-                </SyntaxHighlighter>
-              );
-            },
-          }}
-        >
-          {`\`\`\`${lang}\n${code}\n\`\`\``}
-        </ReactMarkdown>
-      ) : (
-        <div>No code block found.</div>
-      )}
+ {displayPipeline && (
+       <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeRaw]}
+              components={{
+                code(props) {
+                  const { className, children } = props;
+                  const match = /language-(\w+)/.exec(className || '');
+                  const lang = match ? match[1] : detectedLang;
+      
+                  return (
+                    <SyntaxHighlighter
+                      language={lang}
+                      style={vscDarkPlus}
+                      PreTag="div"
+                      customStyle={{
+                        borderRadius: '10px',
+                        fontSize: '0.95rem',
+                        backgroundColor: '#1f1f1f',
+                        color: 'white',
+                      }}
+                    >
+                      {String(children).replace(/\n$/, '')}
+                    </SyntaxHighlighter>
+                  );
+                },
+              }}
+            >
+              {`\`\`\`${detectedLang}\n${displayPipeline}\n\`\`\``}
+            </ReactMarkdown>
+    )}
   </div>
 
   {/* Fixed bottom question box */}

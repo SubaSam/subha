@@ -3,10 +3,7 @@
 import React, { useState, useEffect, type JSX } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import ReactMarkdown from 'react-markdown';
-import type { ReactElement } from 'react';
-
 import { CheckCircle2, CircleArrowDown, CircleArrowRight, CircleArrowUp, Search } from 'lucide-react';
 import {
   Select,
@@ -16,9 +13,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ScrollArea, Scrollbar } from '@radix-ui/react-scroll-area';
-import ExtractedSections from './extractedSection';
-import { useNavigate } from 'react-router-dom';
-// const navigate = useNavigate(); // ✅ Correct
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 
@@ -29,7 +23,7 @@ type Props = {
   responseText: string;
   setResponseText: (text: string) => void;
   setPipelineData: (data: string) => void; // ✅ Add this line
-  setCurrentPipeline: (value: string) => void;
+   setCurrentPipeline: (value: string) => void;
 };
 
 
@@ -40,7 +34,6 @@ export function PipelineExtractor({ goToStep, responseText, setResponseText, set
   };
 
   const [gitUrlTouched, setGitUrlTouched] = useState(false);
-  const [step, setStep] = useState<number>(1);
   const [technology, setTechnology] = useState('');
   const [os, setOS] = useState('');
   const [gitUrl, setGitUrl] = useState('');
@@ -52,13 +45,9 @@ export function PipelineExtractor({ goToStep, responseText, setResponseText, set
   const [extractLog, setExtractLog] = useState('');
   const [statusText, setStatusText] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
-  const [canGenerateSpec, setCanGenerateSpec] = useState(false);
   const [showCard, setShowCard] = useState(false);
-  //  const [responseText, setResponseText] = useState('');  
-   const [showTextarea, setShowTextarea] = useState(false); 
+  const [showTextarea, setShowTextarea] = useState(false); 
 const [isSidebarOpen, setIsSidebarOpen] = useState(true);
- const [typedInstruction, setTypedInstruction] = useState("");
-  // const router = useRouter();
   useEffect(() => {
     const stored = localStorage.getItem(GITHUB_KEY);
     if (stored) {
@@ -151,45 +140,7 @@ const handleExtract = async () => {
 
 
 const [customInstruction, setCustomInstruction] = useState('');
- 
-  const [userAdditions, setUserAdditions] = useState("");
-  // const [pipelineData, setPipelineData] = useState(null);
-  const [userInput, setUserInput] = useState("");
 
-// const handleGenerate = async (userInstruction: string) => {
-//   try {
-//     const response = await fetch("http://127.0.0.1:8000/generate-pipeline", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify({
-//         detected_info: responseText,    // from previous step
-//         repo_link: gitUrl,              // repo URL
-//         user_additions: userInstruction,
-//         ci_cd_tool: technology,
-//         os: os,
-//       }),
-//     });
-
-//     if (!response.ok) {
-//       throw new Error(`HTTP error! Status: ${response.status}`);
-//     }
-
-//     const data = await response.json();
-
-//     const cleanedPipeline = data.pipeline
-//       .replace(/^```.*?\n/, "")
-//       .replace(/```$/, "");
-
-//     localStorage.setItem("pipelineData", cleanedPipeline);
-//     setPipelineData(cleanedPipeline); // ⬅️ update UI too if needed
-//         goToStep(2); 
-
-//   } catch (error) {
-//     console.error("Error generating pipeline:", error);
-//   }
-// };
 
 const handleGenerate = async (userInstruction: string) => {
   setIsGenerating(true); // Start loading
@@ -215,12 +166,14 @@ const handleGenerate = async (userInstruction: string) => {
     const data = await response.json();
 
     const cleanedPipeline = data.pipeline
-      .replace(/^```.*?\n/, "")
-      .replace(/```$/, "");
+    if (cleanedPipeline) {
+    const match = cleanedPipeline.match(/```[\s\S]*?\n([\s\S]*?)```/);
+    const cleanedCode = match ? match[1].trim() : '';
 
-    localStorage.setItem("pipelineData", cleanedPipeline);
-    setPipelineData(cleanedPipeline);
+    localStorage.setItem("pipelineData", cleanedCode);
+    setPipelineData(cleanedCode);
     goToStep(2);
+    } 
   } catch (error) {
     console.error("Error generating pipeline:", error);
   } finally {

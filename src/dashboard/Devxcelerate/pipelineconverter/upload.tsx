@@ -26,30 +26,17 @@ type Props = {
 };
 
 
-export function PipelineUpload({ goToStep, responseText, setResponseText, setPipelineData, setCurrentPipeline }: Props): JSX.Element {
-
-  // const handleProceed = () => {
-  //   goToStep(2); 
-  // };
-
-  const [step, setStep] = useState<number>(1);
-  // const [technology, setTechnology] = useState('');
+export function PipelineUpload({ goToStep, responseText, setResponseText, setPipelineData, setCurrentPipeline  }: Props): JSX.Element {
   const [os, setOS] = useState('');
   const [sourceTechnology, setSourceTechnology] = useState('');
 const [targetTechnology, setTargetTechnology] = useState('');
-
   const [canExtract, setCanExtract] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
-  const [logEnabled, setLogEnabled] = useState(false);
   const [extractLog, setExtractLog] = useState('');
   const [statusText, setStatusText] = useState('');
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [canGenerateSpec, setCanGenerateSpec] = useState(false);
-  const [showCard, setShowCard] = useState(false);
    const [showTextarea, setShowTextarea] = useState(false); 
 const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 const [isGenerating, setIsGenerating] = useState(false);
-const [customInstruction, setCustomInstruction] = useState('');
  const [fileContent, setFileContent] = useState('');
 
 // const handleConvert = async () => {
@@ -109,17 +96,15 @@ const handleConvert = async () => {
     const data = await response.json();
     // console.log("API response:", data);
 
-    if (data.converted_code) {
-      const cleanedPipeline = data.converted_code
-        .replace(/^```.*?\n/, "")
-        .replace(/```$/, "");
-
-      // console.log("✅ Cleaned Pipeline:", cleanedPipeline);
-      localStorage.setItem("pipelineData", cleanedPipeline);
-      setPipelineData(cleanedPipeline);
-      setCurrentPipeline(cleanedPipeline);
-
-      console.log("⏭ Calling goToStep(2)");
+   const convertdata = data.converted_code;
+   console.log("Converted pipeline data:", convertdata);
+    if (convertdata) {
+    const match = convertdata.match(/```[\s\S]*?\n([\s\S]*?)```/);
+    const cleanedCode = match ? match[1].trim() : '';
+      localStorage.setItem("convertedcode", cleanedCode);
+      setPipelineData(cleanedCode);
+     
+      console.log("Cleaned code:", cleanedCode);
       goToStep(2);
     } else {
       console.warn("⚠️ No pipeline field returned.");
@@ -206,13 +191,6 @@ useEffect(() => {
 
 
 const [extractedData, setExtractedData] = useState('');
-
-  // Load from localStorage on mount
-  // useEffect(() => {
-  //   const saved = localStorage.getItem('extractedData');
-  //   if (saved) setExtractedData(saved);
-  // }, []);
-
   // Save to localStorage on change
   useEffect(() => {
     localStorage.setItem('extractedData', extractedData);
@@ -238,14 +216,25 @@ useEffect(() => {
 }, [responseText]);
 
 
-const detectedLang = responseText.includes("pipeline {") ? "groovy" : "yaml";
-// const cleanedPipeline = responseText
-//   .replace(/^```(?:\w+)?\n/, '') // remove starting ```
-//   .replace(/```$/, '')           // remove ending ```
-//   .trim();
-const cleanedCode = responseText
-  .replace(/^```[\s\S]*?\n/, '') // Remove opening ```lang
-  .replace(/```$/, ''); // Remove closing ```
+// const detectedLang = responseText.includes("pipeline {") ? "groovy" : "yaml";
+// const match = responseText.match(/```[\s\S]*?\n([\s\S]*?)```/);
+// const cleanedconvertedCode = match ? match[1].trim() : '';
+let cleanedconvertedCode = '';
+
+// Match any code block inside triple backticks (```groovy\n...\n```)
+const codeBlockMatch = responseText.match(/```(?:\w+)?\n([\s\S]*?)```/);
+
+if (codeBlockMatch && codeBlockMatch[1].trim().length > 0) {
+  // If a valid code block exists, use the extracted content
+  cleanedconvertedCode = codeBlockMatch[1].trim();
+} else {
+  // Fallback to using the entire responseText
+  cleanedconvertedCode = responseText.trim();
+}
+
+// Detect language based on content
+const detectedLang = cleanedconvertedCode.includes("pipeline {") ? "groovy" : "yaml";
+
 
   return (
         <>
@@ -388,7 +377,7 @@ const cleanedCode = responseText
          <p className={`text-[14px] ml-2 mt-2  cursor-default 
                 ${responseText.length>0 ? 'text-black dark:text-white' : 'text-gray-500'}`}>File Preview</p>}
         
-                  {cleanedCode && (
+                  {cleanedconvertedCode && (
   <div className="p-1 overflow-y-auto whitespace-pre-wrap text-sm">
      <ReactMarkdown
             remarkPlugins={[remarkGfm]}
@@ -417,7 +406,7 @@ const cleanedCode = responseText
               },
             }}
           >
-            {`\`\`\`${detectedLang}\n${cleanedCode}\n\`\`\``}
+            {`\`\`\`${detectedLang}\n${cleanedconvertedCode}\n\`\`\``}
           </ReactMarkdown>
   </div>
 )}

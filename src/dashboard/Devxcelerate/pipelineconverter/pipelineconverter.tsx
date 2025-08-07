@@ -63,7 +63,7 @@ React.useEffect(() => {
           responseText={responseText}
           setResponseText={setResponseText}
           setPipelineData={setPipelineData}
-          setCurrentPipeline={setCurrentPipeline}
+          // setCurrentPipeline={setCurrentPipeline}
         />
       )}
 

@@ -4,11 +4,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 import LandingPage from "@/components/LandingPage"
 import "@/App.css"
 import Page from "./dashboard/Page"
-import { TabsDemo } from "./dashboard/SpeakTest/speaktext"
-import LoginPage from "./Login/LoginPage"
 import Pipeline from "./dashboard/Devxcelerate/pipelinegenerator/pipeline"
 import PipelineConverter from "./dashboard/Devxcelerate/pipelineconverter/pipelineconverter"
-// import Clarifi from "./dashboard/ClarifiAI/clarifi"
+import Refiner from "./dashboard/Devxcelerate/PipelineRefiner/pipeRefiner"
+import CodeGenie from "./dashboard/CodeGenie/document"
 
 function App() {
   return (
@@ -18,6 +17,9 @@ function App() {
           <Route path="/" element={<Page />} >
           <Route path="DevXcelerateGenerator" element={<Pipeline/>}/>
           <Route path="DevXcelerateConverter" element={<PipelineConverter/>}/>
+          <Route path="DevXcelerateRefiner" element={<Refiner/>}/>
+          <Route path="/codegenie" element={<CodeGenie />} />
+
           </Route>
           <Route path="/landing" element={<LandingPage />} />
           <Route path="/:tool" element={<Page />} />

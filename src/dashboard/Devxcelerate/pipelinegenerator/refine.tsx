@@ -2,18 +2,13 @@
 
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, type JSX } from 'react';
-import { useNavigate } from 'react-router-dom';
 import PipelineChat from './pipelinechat';
 import { vscDarkPlus  } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { atomOneDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import type { HTMLAttributes } from 'react';
-// refine.tsx
-//in props added null
+
 type Props = {
   pipelineData: string; // ✅ allow null
   setFinalPipeline: (value: string) => void;
@@ -46,12 +41,7 @@ const handleProceed = () => {
     }, [successMessage]);
   const [showChat, setShowChat] = useState(false);  
   const [isSidebarOpen, setIsSidebarOpen] = useState(true) 
-// const [currentPipeline, setCurrentPipeline] = useState<string>(() => {
-//   return localStorage.getItem("saved_pipeline_code") || pipelineData || '';
-// });
-// useEffect(() => {
-//   localStorage.setItem("saved_pipeline_code", currentPipeline);
-// }, [currentPipeline]);
+
 const displayPipeline = currentPipeline || pipelineData || '';
 const detectedLang = currentPipeline.includes("pipeline {") ? "groovy" : "yaml";
 
@@ -72,9 +62,12 @@ const handleRequestChange = async (userInput: string) => {
     });
 
     const data = await response.json();
-
-    if (data.output) {
-      setCurrentPipeline(data.output);
+    const responseText = data.output
+    if (responseText) {
+    const match = responseText.match(/```[\s\S]*?\n([\s\S]*?)```/);
+    const cleanedCode = match ? match[1].trim() : '';
+  
+      setCurrentPipeline(cleanedCode);
       setSuccessMessage("Code updated successfully!");
     } else {
       setSuccessMessage("No changes made.");
@@ -86,26 +79,25 @@ const handleRequestChange = async (userInput: string) => {
     setIsLoading(false);
   }
 };
-//  const cleanedCode = displayPipeline
-//   .replace(/^```[\s\S]*?\n/, '') // Remove opening ```lang
-//   .replace(/```$/, ''); // Remove closing ```
 
+console.log("displayPipeline:", displayPipeline);
   
 return (
   <div className='flex flex-col'>
+         {isLoading && (
+  <div className="fixed inset-0 backdrop-transparent bg-black/60 z-50 flex items-center justify-center">
+    <p className="text-white text-lg font-semibold animate-pulse">Loading...</p>
+  </div>
+)}
   <div className="flex flex-row space-x-2 mt-2 w-full">
 
-    {/* LEFT SIDEBAR */}
     {isSidebarOpen && (
     <div className="bg-[#f9f9f9] dark:bg-[#171717] p-3 w-full rounded-lg shadow-md text-black dark:text-white text-[14px] space-y-4 h-[29rem]">
   <p>Draft Pipeline Code</p>
 
 
 <div className="bg-[#f5f5f5] h-100 overflow-hidden dark:bg-[#1f1f1f] rounded-md border border-gray-700 flex flex-col">
-
-  {/* Scrollable Markdown content */}
   <div className="flex-grow overflow-y-auto p-2.5">
-    {/* {pipelineData && currentPipeline && ( */}
     {displayPipeline && (
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}

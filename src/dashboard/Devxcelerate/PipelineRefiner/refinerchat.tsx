@@ -17,14 +17,25 @@ import type { HTMLAttributes } from 'react';
 
 
 
+
 type Props = {
-  goToStep: (step: number) => void;
+  
   setIsSidebarOpen: (open: boolean) => void;
   setShowChat: (open: boolean) => void;
   showChat: boolean;
-  onSendRequestChange: (input: string) => void;
+  isMinimized: boolean;
+  setIsMinimized: (minimized: boolean) => void;
   currentPipeline: string;
   setCurrentPipeline: (code: string) => void; // ✅ new
+  setUploadedFileName: (name: string | null) => void; // ✅ new
+  fileUploaded: boolean; // ✅ new
+  setFileUploaded: (uploaded: boolean) => void; // ✅ new
+  refinementStarted: boolean; // ✅ new
+  setRefinementStarted: (started: boolean) => void; // ✅ new
+  chatMessages: Message[];
+  setChatMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  // displayPipeline: string; // ✅ new
+  // setPipelineData: (data: string) => void; // ✅ new
 };
 
 
@@ -42,17 +53,27 @@ type ChatSession = {
 
 const CHAT_HISTORY_KEY = "pipeline_chat_sessions";
 
-export default function PipelineChat({
-  goToStep,
+export default function RefinerChat({
+ 
   setIsSidebarOpen,
   setShowChat,
   showChat,
-  onSendRequestChange,
+  isMinimized,
+  setIsMinimized,
   currentPipeline,
-  setCurrentPipeline
+  setCurrentPipeline,
+  setUploadedFileName,
+  fileUploaded,
+  setFileUploaded,
+  refinementStarted,
+  setRefinementStarted,
+  chatMessages,
+  setChatMessages
+  // displayPipeline,
+  // setPipelineData,
 }: Props) {
   const [tab, setTab] = useState("refine");
-  const [refinementStarted, setRefinementStarted] = useState(false);
+  // const [refinementStarted, setRefinementStarted] = useState(false);
 const [isRefinerTyping, setIsRefinerTyping] = useState(false);
 const [isDevopsTyping, setIsDevopsTyping] = useState(false);
                                                      
@@ -60,13 +81,15 @@ const [refinementAgentMessage, setRefinementAgentMessage] = useState<Message[]>(
  const [devOpsExpertMessage, setDevOpsExpertMessage] = useState<Message[]>([]);
   const [typedInstruction, setTypedInstruction] = useState("");
   const [feedbackInstruction, setFeedbackInstruction] = useState("");
-  const [chatMessages, setChatMessages] = useState<Message[]>([]);
-  const [isMinimized, setIsMinimized] = useState(false);
+  // const [chatMessages, setChatMessages] = useState<Message[]>([]);
+  // const [isMinimized, setIsMinimized] = useState(false);
   const [refinementTime, setRefinementTime] = useState("");
   const [devOpsTime, setDevOpsTime] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<"idle" | "success" | "error">("idle");
+
 
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -98,18 +121,32 @@ const handleFinalize = () => {
 };
 
 
+const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
 
+  try {
+    const text = await file.text();
+    setCurrentPipeline(text);
+    setUploadStatus("success");
+    setFileUploaded(true);
+    setUploadedFileName(file.name);
 
+    // ✅ Hide success message after 3 seconds
+    setTimeout(() => {
+      setUploadStatus("idle");
+    }, 3000);
 
-const handleSendChangeRequest = async () => {
-  if (typedInstruction.trim() === "") return;
+  } catch (error) {
+    console.error("Upload failed:", error);
+    setUploadStatus("error");
 
-  console.log("Calling onSendRequestChange with:", typedInstruction); // 👈 log this
-  onSendRequestChange?.(typedInstruction);
-
-  setTypedInstruction(""); // clear input
+    // ✅ Hide error message after 3 seconds
+    setTimeout(() => {
+      setUploadStatus("idle");
+    }, 3000);
+  }
 };
-
 
 
 
@@ -172,21 +209,6 @@ const handleStartRefinement = async () => {
     const data = await response.json();
     const refinement_agent_message = data.refiner;
     const devops_expert_message = data.devops;
-                 
-
-                   
-                 
-        
-                                                       
-     
-   
-                
-                 
-        
-                                                     
-     
-   
-
     setRefinementStarted(true);
     setRefinementAgentMessage(
       refinement_agent_message || "Refinement agent did not respond."
@@ -300,17 +322,18 @@ const sendFeedback = async (feedback: string) => {
 const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
 const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
-useEffect(() => {
-  const saved = localStorage.getItem(CHAT_HISTORY_KEY);
-  if (saved) {
-    const sessions: ChatSession[] = JSON.parse(saved);
-    setChatSessions(sessions);
-    if (sessions.length > 0) {
-      setActiveSessionId(sessions[sessions.length - 1].id);
-      //setChatMessages(sessions[sessions.length - 1].messages);
-    }
-  }
-}, []);
+// useEffect(() => {
+//   const saved = localStorage.getItem(CHAT_HISTORY_KEY);
+//   if (saved) {
+//     const sessions: ChatSession[] = JSON.parse(saved);
+//     setChatSessions(sessions);
+//     if (sessions.length > 0) {
+//       setActiveSessionId(sessions[sessions.length - 1].id);
+//       //setChatMessages(sessions[sessions.length - 1].messages);
+//     }
+//   }
+// }, []);
+
 const saveSessionsToLocal = (sessions: ChatSession[]) => {
   localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(sessions));
 };
@@ -331,6 +354,7 @@ const addMessageToCurrentSession = (msg: Message) => {
   saveSessionsToLocal(updatedSessions);
 };
 
+const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
 
   return (
@@ -367,11 +391,9 @@ className="w-4 h-4 cursor-pointer text-black dark:text-white" />
              <p className='ml-1'> Refine Experts</p>
               
             </TabsTrigger>
-            <TabsTrigger value="change" className={`flex flex-row px-4 py-2 text-sm ${tab === 'change' ? 'text-black dark:text-white border-b-2 border-purple-500' : 'text-gray-400'}`}>
-             <img src="/changerequest.svg" className='w-4 h-3.5 mt-0.5'/>
-             <p className='ml-1'> Change Request </p>
+           
  
-            </TabsTrigger>
+           
             {tab === 'refine' && (
                 <div className="flex ml-auto mt-1 space-x-2">
                 <Button
@@ -387,7 +409,7 @@ className="w-4 h-4 cursor-pointer text-black dark:text-white" />
   setChatSessions(updatedSessions);
   setActiveSessionId(newSession.id);
   saveSessionsToLocal(updatedSessions);
-
+  setFileUploaded(false); // Reset file upload state
   setRefinementStarted(false);
   // setRefinementAgentMessage("");
   // setDevOpsExpertMessage("");
@@ -412,64 +434,108 @@ className="w-4 h-4 cursor-pointer text-black dark:text-white" />
           </TabsList>
 
           {/* Refine Tab */}
-          <TabsContent value="refine" className="relative  h-[60vh] w-full p-2  ">
-            <div className="flex flex-col h-[45vh] w-full">
+          <TabsContent value="refine" className="relative  h-[75vh] w-full p-2  ">
+            <div className="flex flex-col h-[48vh] w-full">
               <div className={`${refinementStarted ? 'invisible' : 'visible'} transition-all duration-300`}>
-               {!refinementStarted && (
-                <>
-                 <p className="text-[17px] mt-12 text-center">Welcome back!</p>
-                <p className="text-[13px] text-gray-400 mb-4 text-center">
-                  Chat to the Experts & Agents to refine the generated code.
-                </p>
-                <div className='items-center justify-center text-center'>
-                {/* <Button
-                    onClick={handleStartRefinement}
-                    className="bg-white text-black"
-                  >
-                    Start Refinement
-                </Button> */}
-<Button
-  onClick={handleStartRefinement}
-  className="bg-black dark:bg-white text-white dark:text-black"
-  // disabled={isLoading}
->
-  {isLoading ? (
-    <div className="flex items-center gap-2">
-      <svg
-        className="animate-spin h-4 w-4 text-white dark:text-black"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-      >
-        <LoaderCircle  
-          
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          strokeWidth="4"
-        />
-        {/* <path
-          className="opacity-75"
-          fill="currentColor"
-          d="M4 12a8 8 0 018-8v8H4z"
-        ></path> */}
-      </svg>
-      <span>Refining...</span>
-    </div>
-  ) : (
-    "Start Refinement"
-  )}
-</Button>
+                {!refinementStarted && (
+                  <div className="mt-10 flex flex-col items-center">
+                    <div className="flex flex-col items-center gap-3">
+    <p className="text-sm text-black dark:text-white">Please do upload the generated code:</p>
 
-                </div>
-                </>
-             
-               )}  
-              </div>
+    <label className="relative items-center">
+      <input
+        type="file"
+        accept=".yaml,.yml,.json,.txt"
+        onChange={handleFileUpload}
+        className="hidden"
+        id="file-upload"
+      />
+      <Button
+        className="bg-gray-800 text-white dark:bg-[#323233] dark:text-white text-xs px-3 py-2 h-8 rounded-lg"
+        onClick={() => document.getElementById('file-upload')?.click()}
+      >
+        <img src="./download.svg" className="h-3 w-4 inline-block" />
+        Upload
+      </Button>
+    </label>
+    {uploadStatus === "success" && (
+    <div className="flex flex-col items-center gap-2 w-full max-w-xs mt-2">
+      <div className="flex flex-row gap-1">
+       <svg  xmlns="http://www.w3.org/2000/svg" width="18" height="14" viewBox="0 0 30.266 30.266">
+          <path d="M30.266,15.133A15.133,15.133,0,1,1,15.133,0,15.133,15.133,0,0,1,30.266,15.133ZM22.756,9.4a1.419,1.419,0,0,0-2.043.042l-6.57,8.37-3.959-3.961a1.419,1.419,0,0,0-2.005,2.005l5.005,5.007a1.419,1.419,0,0,0,2.041-.038l7.551-9.439A1.419,1.419,0,0,0,22.758,9.4Z" fill="#24d304"/>
+        </svg>
+      <p className="text-black dark:text-white text-xs"> Upload done successfully!</p>
+      </div>
+      <hr className="w-full border-t border-gray-700" />
+    </div>
+  )}
+  
+  {uploadStatus === "error" && (
+    <div className="flex flex-col items-center gap-2 w-full max-w-xs mt-2">
+   
+      <p className="text-black dark:text-white text-sm"> Upload failed. Try again.</p>
+      <hr className="w-full border-t border-gray-700" />
+    </div>
+  )}
+  </div>
+
+  
+
+</div>
+  )}
+
+   {!refinementStarted && (
+<>
+    
+ <div
+    className={`
+      mt-6 text-center transition-opacity duration-300
+      ${fileUploaded ? 'opacity-100 pointer-events-auto' : 'opacity-20 pointer-events-none'}
+    `}
+  >
+    <p className="text-[17px]">Welcome back!</p>
+    <p className="text-[13px] text-gray-400 mb-4">
+      Chat to the Experts & Agents to refine the generated code.
+    </p>
+    <div className="items-center justify-center">
+      <Button
+        onClick={handleStartRefinement}
+        className="bg-black dark:bg-white text-white dark:text-black"
+        disabled={!fileUploaded}
+      >
+        {isLoading ? (
+          <div className="flex items-center gap-2">
+            <svg
+              className="animate-spin h-4 w-4 text-white dark:text-black"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <LoaderCircle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+            </svg>
+            <span>Refining...</span>
+          </div>
+        ) : (
+          "Start Refinement"
+        )}
+      </Button>
+    </div>
+  </div>
+  </>
+)}
+
+    
+</div>
+
 
               
-                <div className='h-72 w-full overflow-y-auto'>
+                <div className='h-90  w-full overflow-y-auto'>
                 {refinementStarted && (
 <div className="space-y-2  overflow-y-auto px-2 max-w-full sm:max-w-[1000px] mr-auto">
 
@@ -682,13 +748,30 @@ className="w-4 h-4 cursor-pointer text-black dark:text-white" />
            
                   <div className="flex  mt-2 justify-between items-center">
   {/* Left side: Keep original Pipeline */}
+  
   <div>
     <Button
-      disabled={!refinementStarted}
-      className={`justify-start h-7 ${refinementStarted ? 'bg-[black] text-white' : 'bg-black text-gray-300 cursor-not-allowed'}`}
+//     onClick={() => {
+//       console.log("pipelineData:", displayPipeline);
+//   if (displayPipeline) {
+//     setCurrentPipeline(displayPipeline);
+//     setShowSuccessMessage(true);
+//     setTimeout(() => setShowSuccessMessage(false), 3000);
+//   }
+// }}
+
+      
+      // disabled={!refinementStarted}
+      className={`justify-start h-7 ${refinementStarted ? 'bg-[#212121] text-white' : 'bg-black text-gray-300 '}`}
     >
       Keep original Pipeline
     </Button>
+    {showSuccessMessage && (
+  <p className="text-green-600 text-sm mt-2">
+    ✅ Original pipeline replaced successfully.
+  </p>
+)}
+
   </div>
 
   {/* Right side: Continue + Finalize Pipeline */}
@@ -768,35 +851,7 @@ className="w-4 h-4 cursor-pointer text-black dark:text-white" />
     )}
   </div>
 )}
-          {/* Change Request Tab */}
-          <TabsContent value="change" className="relative w-full p-2 ">
-                      <Input
-                    className="h-12 bg-[#ececec] dark:bg-[#1a1a1a] border border-gray-700  text-black dark:text-white text-sm resize-none pr-12"
-                    placeholder="Enter your change instruction here..."
-                    onChange={(e) => setTypedInstruction(e.target.value)}
-                    // disabled={!refinementStarted}
-                    value={typedInstruction}
-                     onKeyDown={(e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault(); // Prevents newline (especially in multiline inputs)
-      handleSendChangeRequest();     // Call your submit function here
-    }
-  }}
-                  />
-                  <button
-                   onClick={handleSendChangeRequest}
-
-
-                  className="absolute right-5 top-2 text-white rounded-full h-12 w-5 text-sm"
-                  >
-                    <img src="/purplearrow.svg"/>
-                  </button>
-                  <p className='text-sm p-1'>Below are some example for change request instructions:</p>
-                  <p className='text-sm p-1  ml-2 text-black dark:text-white'>
-                    1. Clearly describe what change you want to make to the pipeline.<br/>
-                    2. Explain the reason or goal behind your requested change.<br/>
-                    3. Mention any specific steps, files, or parts of the pipeline affected by this change.</p>
-          </TabsContent>
+       
         </Tabs>
         
       </div>
@@ -834,9 +889,9 @@ className="w-4 h-4 cursor-pointer text-black dark:text-white" />
       )}
 
       {showSuccess && (
-        <div className=" fixed bottom-4 ml-5 mt-[-5px] flex flex-row text-black dark:text-white px-4 py-2 rounded-lg shadow-lg z-50">
+        <div className=" fixed bottom-4  mt-[-5px] text-sm flex flex-row text-black dark:text-white px-4 py-2 rounded-lg shadow-lg z-50">
           <span >
-          <svg xmlns="http://www.w3.org/2000/svg" width="30.266" height="20" viewBox="0 0 30.266 30.266">
+          <svg xmlns="http://www.w3.org/2000/svg" width="30.266" height="16" viewBox="0 0 30.266 30.266">
                 <g id="check-circle-fill" transform="translate(0 0)">
                   <g id="Group_76" data-name="Group 76" transform="translate(0 0)">
                     <path id="Path_81" data-name="Path 81" d="M30.266,15.133A15.133,15.133,0,1,1,15.133,0,15.133,15.133,0,0,1,30.266,15.133ZM22.756,9.4a1.419,1.419,0,0,0-2.043.042l-6.57,8.37-3.959-3.961a1.419,1.419,0,0,0-2.005,2.005l5.005,5.007a1.419,1.419,0,0,0,2.041-.038l7.551-9.439A1.419,1.419,0,0,0,22.758,9.4Z" transform="translate(0 0)" fill="#24d304"/>
@@ -850,7 +905,7 @@ className="w-4 h-4 cursor-pointer text-black dark:text-white" />
 
     
       {showChat && isMinimized && (
-  <div className="fixed bottom-21 right-15 bg-[#E7E7E7] dark:bg-[#0B0B0B] text-black dark:text-white border border-gray-600 rounded-md shadow-lg px-2 py-2 flex items-center justify-between w-75 z-50">
+  <div className="fixed bottom-17 right-12 bg-[#E7E7E7] dark:bg-[#0B0B0B] text-black dark:text-white border border-gray-600 rounded-md shadow-lg px-2 py-2 flex items-center justify-between w-75 z-50">
     <div className="flex items-center gap-2">
       <MessageSquareMore className="w-4 h-4" />
       <span className="text-sm">Chat </span>

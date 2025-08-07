@@ -38,16 +38,7 @@ export default function Pipelinefinaloutput({ goToStep , finalPipeline}: Props):
 const [ciCdTool, setCiCdTool] = useState<string | null>(null);
 
 
-// const handleDownload = () => {
-//   if (!finalPipeline) return;
-//   const blob = new Blob([finalPipeline], { type: 'text/plain' });
-//   const link = document.createElement('a');
-//   link.href = URL.createObjectURL(blob);
-//   link.download = 'Pipeline';
-//   document.body.appendChild(link);
-//   link.click();
-//   document.body.removeChild(link);
-// };
+
 const handleDownload = () => {
   console.log('Final Pipeline:', finalPipeline);
   console.log(typeof finalPipeline);
